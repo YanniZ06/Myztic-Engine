@@ -1,0 +1,13 @@
+-cp src
+--main Main
+--dce std
+
+--library linc_sdl
+--library linc_opengl
+--library hxcpp-debug-server
+--debug
+
+-D HXCPP_M64
+
+
+--cpp output
