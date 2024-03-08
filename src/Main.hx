@@ -13,15 +13,16 @@ import sdl.Keycodes;
 import sdl.Event;
 import sdl.SDL;
 import haxe.Timer;
-import sdl_extend.Mouse.MouseButton;
-import sdl_extend.MessageBox;
-import sdl_extend.Video as SDLVideo;
+import sdl.MessageBox;
 import sdl.Window;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;
 // import opengl.GL.*;
 
-import opengl.GL;
-import glew.GLEW;
+import opengl.OpenGL as GL;
+import glad.Glad;
+
+import cpp.Function;
+
 import graphics.oglh.GLH;
 
 import myztic.util.StarArray;
@@ -111,21 +112,21 @@ class Main {
          width, height,
          SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
 
-        trace(SDLVideo.getWindowDisplayIndex(window));
+        trace(SDL.getWindowDisplayIndex(window));
 
 
         glc = SDL.GL_CreateContext(window); // Cant check if glc is null, gotta depend on contex tsetting providing work
         final cRes = SDL.GL_MakeCurrent(window, glc);
         if(cRes != 0) throw 'Error making context current of window ${SDL.getWindowID(window)}! - ${SDL.getError()}';
-
-        final glew_res = GLEW.init(); // Its important we initialize GLEW AFTER making our context
-        if(glew_res != GLEW.OK) throw 'Failed to initialize GLEW! ' + GLEW.error(glew_res);
+        final gladResult:Int = Glad.gladLoadGLLoader(untyped __cpp__('(GLADloadproc)SDL_GL_GetProcAddress')); // Its important we initialize GLAD AFTER making our context
+        if(gladResult != 1) throw 'Failed to initialize GLAD! Most likely outdated OpenGL Version, Required: OpenGL 3.3, ERROR CODE: $gladResult';
         
         var glV:String;
         try { glV = GLH.getString(GL.GL_VERSION); }
         catch(e) { throw 'Could not automatically get current OpenGL version. Please check manually. (GL 3.3 is required) [ERROR::$e]'; }
 
-        if(!GLEW.VERSION_3_3) 
+        //i am actually so sorry
+        if((Glad.glVersion.major == 3 && Glad.glVersion.minor != 3) || (Glad.glVersion.major != 4)) 
             throw 'OpenGL version 3.3 is not supported on this device.
             \nCheck if your drivers are installed properly and if your GPU supports GL 3.3.
             \nRegistered Version: $glV';
@@ -288,15 +289,15 @@ class Main {
         }
     }
 
-    static final msgBoxContinue = MessageBoxSys.makeMsgBoxButton('Continue', () -> {});
-    static final msgBoxQuit = MessageBoxSys.makeMsgBoxButton('Quit', () -> { mayQuit = true; });
+    static final msgBoxContinue = MessageBox.makeCallbackButton('Continue', () -> {});
+    static final msgBoxQuit = MessageBox.makeCallbackButton('Quit', () -> { mayQuit = true; });
     static var mayQuit:Bool = false;
     dynamic static function handleQuitReq():Bool {
-        MessageBoxSys.showCustomMessageBox(
+        MessageBox.showCallbacksMessageBox(
             'Quit requested',
             'Would you like to continue or quit?',
             window,
-            SDLMessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+            SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
             [msgBoxContinue, msgBoxQuit]
         );
 

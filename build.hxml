@@ -2,9 +2,10 @@
 --main Main
 --dce std
 
+
 --library linc_sdl
 --library linc_opengl
---library hxcpp-debug-server
+--library hxcpp-debug
 --debug
 
 -D HXCPP_M64

@@ -1,6 +1,6 @@
 package graphics.oglh;
 
-import opengl.GL;
+import opengl.OpenGL;
 import cpph.StarArray;
 /**
  * GL Helper class for bindings and the like
