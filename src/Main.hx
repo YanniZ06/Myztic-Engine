@@ -1,45 +1,41 @@
 package;
 
+import cpp.Pointer;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
 import haxe.io.BytesBuffer;
 import haxe.io.BytesData;
 import haxe.io.Bytes;
+import haxe.Timer;
 
-import cpp.Native;
-import cpp.Float32;
 import sdl.Keycodes;
 import sdl.Event;
 import sdl.SDL;
-import haxe.Timer;
+
 import sdl.MessageBox;
 import sdl.Window;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;
-// import opengl.GL.*;
 
 import opengl.OpenGL as GL;
+import opengl.OpenGL.GLuint;
+import opengl.OpenGL.GLboolean;
+import opengl.OpenGL.GLfloat;
+import opengl.OpenGL.GLuintPointer;
+import opengl.OpenGL.GLintPointer;
+import opengl.VoidPointer;
+import opengl.StringPointer;
 import glad.Glad;
 
-import cpp.Function;
-
 import graphics.oglh.GLH;
+import graphics.oglh.VBO;
 
-import myztic.util.StarArray;
+//import myztic.util.StarArray;
 
-typedef Pos = {
-    var x:Float;
-    var y:Float;
-}
-class Object {
-    public var position:Pos;
-    public var velocity:Float;
+import cpph.Tools;
+import cpp.Float32;
 
-    public function new(pos:Pos, velocity:Float) {
-        position = pos;
-        this.velocity = velocity;
-    }
-}
+using cpp.Native;
 
 // Interesting todo:
 // GL Integration
@@ -61,6 +57,9 @@ class Main {
     static var window:Window;
 
     static var glc:sdl.GLContext;
+
+    static var shaderProgram:GLuint;
+    static var vertexArrayObject:GLuint;
 
     static function main() {
         fps = 60;
@@ -137,33 +136,68 @@ class Main {
         trace('Current context is made context?? - ${SDL.GL_GetCurrentContext() == glc}');
         trace('Vendor: ${GLH.getString(GL.GL_VENDOR)}');
 
-        var bo = new BytesOutput();
-        bo.prepare(4*9);
-        final vertices:Array<Float> = [
+        final vertices:Array<GLfloat> = [
             -0.5, -0.5, 0.0,
             0.5, -0.5, 0.0,
             0.0,  0.5, 0.0
         ];
-        for(id=>v in vertices) bo.writeFloat(v);
 
-        var data = bo.getBytes().getData();
-        trace(data);
-        trace(data.length);
+        GL.glGenVertexArrays(1,vertexArrayObject.addressOf());
+        final vertexBuffer:VBO = VBO.make();
+       
+        GL.glBindVertexArray(vertexArrayObject);
 
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer.handle);
 
-        // var arr:cpph.StarArray = new cpph.StarArray(9);
-        // trace(arr.data);
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), GL.GL_STATIC_DRAW);
+        trace(GL.glGetError());
 
-        //GL.glBufferData(GL.GL_ARRAY_BUFFER, Native.sizeof(data), vertices, GL.GL_STATIC_DRAW);
+        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * GLfloat.sizeof(), 0);
+        GL.glEnableVertexAttribArray(0);
 
-        var arrayT:Array<Int> = [5,1,2,3,4,5,6,7];
-        untyped __cpp__('
-        // int arrTest[8] = reinterpret_cast<int [8]>({0}->Pointer());
-        int * aPtr = {0}->Pointer(); // Gold mine
+        var vs:String = "#version 330 core\n
+        layout (location = 0) in vec3 aPos;\n
+        
+        void main()\n
+        {\n
+            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n
+        }\n";
 
-        std::cout << *aPtr << "\\n"'
-        , arrayT);
-        trace("test !!!");
+        var vertexShader:GLuint = GL.glCreateShader(GL.GL_VERTEX_SHADER);
+       
+        GL.glShaderSource(vertexShader, 1, StringPointer.fromString(vs), null);
+        GL.glCompileShader(vertexShader);
+
+        //get info
+        var success:Int = -65694;
+        GL.glGetShaderiv(vertexShader, GL.GL_COMPILE_STATUS, GLintPointer.fromInteger(success));
+        trace(success);
+
+        var fs:String = "#version 330 core\n
+        out vec4 FragColor;\n
+        
+        void main()\n
+        {\n
+            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n
+        } \n";
+
+        var fragShader:GLuint = GL.glCreateShader(GL.GL_FRAGMENT_SHADER);
+
+        GL.glShaderSource(fragShader, 1, StringPointer.fromString(fs), null);
+        GL.glCompileShader(fragShader);
+
+        GL.glGetShaderiv(fragShader, GL.GL_COMPILE_STATUS, GLintPointer.fromInteger(success));
+        trace(success);
+
+        shaderProgram = GL.glCreateProgram();
+
+        GL.glAttachShader(shaderProgram, vertexShader);
+        GL.glAttachShader(shaderProgram, fragShader);
+        GL.glLinkProgram(shaderProgram);
+
+        GL.glDeleteShader(vertexShader);
+        GL.glDeleteShader(fragShader);
+
         GL.glViewport(0, 0, width, height); // Set Viewport for first time init
 
         SDL.stopTextInput();
@@ -307,6 +341,10 @@ class Main {
     static function render():Void {
         GL.glClearColor(red, 1, blue, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
+
+        GL.glUseProgram(shaderProgram);
+        GL.glBindVertexArray(vertexArrayObject);
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
 
         SDL.GL_SwapWindow(window);
     }
