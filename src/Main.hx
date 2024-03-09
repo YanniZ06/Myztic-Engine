@@ -31,6 +31,7 @@ import graphics.oglh.VBO;
 import graphics.oglh.VAO;
 import graphics.oglh.Shader;
 
+import myztic.util.StarArray;
 //import myztic.util.StarArray;
 import myztic.display.DisplayHandler as Display;
 import myztic.Application;
@@ -68,7 +69,14 @@ class Main {
     static function main() {
         fps = 60;
 
-        // var str:StarArray<Int> = new StarArray<Int>(5);
+        var str:StarArray<cpp.Int32> = new StarArray<cpp.Int32>(3);
+        str.setCurrent(2);
+        str.set(1, 4);
+        str.set(2, 6);
+        trace(str.size);
+        trace(str.getCurrent());
+        trace(str.get(0));
+
         // str.process();
 
         Application.initMyztic();
