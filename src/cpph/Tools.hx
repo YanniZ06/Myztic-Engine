@@ -10,6 +10,7 @@ class Tools{
         return cast Pointer.arrayElem(array, 0).ptr;
 
     //doesnt work because its type parameter'd, must find a way through this, do your thing yanni
-    public static inline function get_void_ptr_from_obj<T>(obj:T):Star<cpp.Void>
-        return null;
+    //@:generic
+    //public static inline function get_void_ptr_from_obj<T>(obj:T):Star<cpp.Void>
+    //    return null;
 }

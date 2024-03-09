@@ -64,7 +64,7 @@ abstract StarArray<T>(IStarArray<T>) from IStarArray<T> to IStarArray<T> {
     @:arrayAccess public inline function get(index:Int):Null<T> {
         final changeReq:Int = index - this.currentIndex;
 
-        untyped __cpp__('{0} = {0} + {1}', this.data, changeReq);
+        untyped __cpp__('{0} += {1}', this.data, changeReq);
         this.currentIndex = index;
         return untyped __cpp__('*{0}', this.data);
     }
@@ -72,7 +72,7 @@ abstract StarArray<T>(IStarArray<T>) from IStarArray<T> to IStarArray<T> {
     @:arrayAccess public inline function set(index:Int, value:T):Void {
         final changeReq:Int = index - this.currentIndex;
 
-        untyped __cpp__('{0} = {0} + {1}', this.data, changeReq);
+        untyped __cpp__('{0} += {1}', this.data, changeReq); // {0} = {0} + {1}
         this.currentIndex = index;
         untyped __cpp__('*{0} = {1}', this.data, value);
     }

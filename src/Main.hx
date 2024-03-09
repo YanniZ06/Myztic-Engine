@@ -106,10 +106,7 @@ class Main {
         final width:Int = cast displayMode.w / 2;
         final height:Int = cast displayMode.h / 2;
 
-        window = SDL.createWindow("SDL TEST", 
-         cast width / 2, cast height / 2, // ! TODO, calculate left and right pixels left with certain width and add them together to get centering x (and same for y [w & h])
-         width, height,
-         SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+        window = myztic.display.Window.create({name: "SDL TEST", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}).handle;
 
         trace(SDL.getWindowDisplayIndex(window));
 

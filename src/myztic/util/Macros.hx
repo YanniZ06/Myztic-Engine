@@ -19,15 +19,15 @@ class STRMacro {
 				switch (t) {
 					case TInst(n, []):
 						final g = n.get();						
-						return buildClass("StarArray",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
+						return buildClass("StarArray_I",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
                     
                     case TAbstract(n, []):
                         final g = n.get();
-                        return buildClass("StarArray",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
+                        return buildClass("StarArray_I",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
 
 					case t: Context.error(" :: Class or abstract expected instead of " + t, Context.currentPos());
 				}
-			case t: Context.error(" :: Class 'StarArray' expected instead of " + t, Context.currentPos());
+			case t: Context.error(" :: Class 'StarArray_I' expected instead of " + t, Context.currentPos());
 		}
 		return null;
 	}

@@ -2,6 +2,8 @@ package graphics.oglh;
 
 import opengl.OpenGL;
 import cpph.StarArray;
+
+//TODO: do we still need this? keep for now
 /**
  * GL Helper class for bindings and the like
  */

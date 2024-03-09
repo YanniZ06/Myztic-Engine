@@ -9,6 +9,7 @@
 --debug
 
 -D HXCPP_M64
+-D MYZTIC_DEBUG_GL
 
 
 --cpp output
