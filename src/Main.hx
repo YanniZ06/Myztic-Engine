@@ -30,7 +30,7 @@ import glad.Glad;
 import graphics.oglh.GLH;
 import graphics.oglh.VBO;
 
-//import myztic.util.StarArray;
+import myztic.util.StarArray;
 
 import cpph.Tools;
 import cpp.Float32;
@@ -64,7 +64,14 @@ class Main {
     static function main() {
         fps = 60;
 
-        // var str:StarArray<Int> = new StarArray<Int>(5);
+        var str:StarArray<cpp.Int32> = new StarArray<cpp.Int32>(3);
+        str.setCurrent(2);
+        str.set(1, 4);
+        str.set(2, 6);
+        trace(str.size);
+        trace(str.getCurrent());
+        trace(str.get(0));
+
         // str.process();
 
         if(SDL.init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
