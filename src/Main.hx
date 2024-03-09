@@ -1,6 +1,5 @@
 package;
 
-import cpp.Pointer;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -12,7 +11,7 @@ import haxe.Timer;
 import sdl.Keycodes;
 import sdl.Event;
 import sdl.SDL;
-
+import sdl.Surface;
 import sdl.MessageBox;
 import sdl.Window;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;
@@ -29,8 +28,13 @@ import glad.Glad;
 
 import graphics.oglh.GLH;
 import graphics.oglh.VBO;
+import graphics.oglh.VAO;
+import graphics.oglh.Shader;
 
 //import myztic.util.StarArray;
+import myztic.display.DisplayHandler as Display;
+import myztic.Application;
+import myztic.util.ErrorHandler;
 
 import cpph.Tools;
 import cpp.Float32;
@@ -58,8 +62,8 @@ class Main {
 
     static var glc:sdl.GLContext;
 
-    static var shaderProgram:GLuint;
-    static var vertexArrayObject:GLuint;
+    static var shaderProgram:ShaderProgram;
+    static var vao:VAO;
 
     static function main() {
         fps = 60;
@@ -67,10 +71,8 @@ class Main {
         // var str:StarArray<Int> = new StarArray<Int>(5);
         // str.process();
 
-        if(SDL.init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
-            throw 'Error initializing SDL subsystems: ${SDL.getError()}';
-        }
-
+        Application.initMyztic();
+        window = Application.getMainWindow();
 
         /*
         trace('Displays:');
@@ -96,42 +98,6 @@ class Main {
         trace('    - And linked against SDL version ${linked.major}.${linked.minor}.${linked.patch}');
         // */
 
-        setGLAttrib( SDL_GL_RED_SIZE, 5 );
-        setGLAttrib( SDL_GL_GREEN_SIZE, 5 );
-        setGLAttrib( SDL_GL_BLUE_SIZE, 5 );
-        setGLAttrib( SDL_GL_DEPTH_SIZE, 16 );
-        setGLAttrib( SDL_GL_DOUBLEBUFFER, 1 );
-
-        var displayMode = SDL.getCurrentDisplayMode(0);
-        final width:Int = cast displayMode.w / 2;
-        final height:Int = cast displayMode.h / 2;
-
-        window = myztic.display.Window.create({name: "SDL TEST", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}).handle;
-
-        trace(SDL.getWindowDisplayIndex(window));
-
-
-        glc = SDL.GL_CreateContext(window); // Cant check if glc is null, gotta depend on contex tsetting providing work
-        final cRes = SDL.GL_MakeCurrent(window, glc);
-        if(cRes != 0) throw 'Error making context current of window ${SDL.getWindowID(window)}! - ${SDL.getError()}';
-        final gladResult:Int = Glad.gladLoadGLLoader(untyped __cpp__('(GLADloadproc)SDL_GL_GetProcAddress')); // Its important we initialize GLAD AFTER making our context
-        if(gladResult != 1) throw 'Failed to initialize GLAD! Most likely outdated OpenGL Version, Required: OpenGL 3.3, ERROR CODE: $gladResult';
-        
-        var glV:String;
-        try { glV = GLH.getString(GL.GL_VERSION); }
-        catch(e) { throw 'Could not automatically get current OpenGL version. Please check manually. (GL 3.3 is required) [ERROR::$e]'; }
-
-        //i am actually so sorry
-        if((Glad.glVersion.major == 3 && Glad.glVersion.minor != 3) || (Glad.glVersion.major != 4)) 
-            throw 'OpenGL version 3.3 is not supported on this device.
-            \nCheck if your drivers are installed properly and if your GPU supports GL 3.3.
-            \nRegistered Version: $glV';
-
-        trace("RUNNING ON OPENGL VERSION: " + glV);
-        trace("GLSL VERSION IS: " + GLH.getString(GL.GL_SHADING_LANGUAGE_VERSION));
-
-        trace('Current context is made context?? - ${SDL.GL_GetCurrentContext() == glc}');
-        trace('Vendor: ${GLH.getString(GL.GL_VENDOR)}');
 
         final vertices:Array<GLfloat> = [
             -0.5, -0.5, 0.0,
@@ -139,72 +105,45 @@ class Main {
             0.0,  0.5, 0.0
         ];
 
-        GL.glGenVertexArrays(1,vertexArrayObject.addressOf());
+        vao = VAO.make();
         final vertexBuffer:VBO = VBO.make();
        
-        GL.glBindVertexArray(vertexArrayObject);
+        vao.bindVertexArray();
 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer.handle);
+        vertexBuffer.bindVertexBuffer();
 
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), GL.GL_STATIC_DRAW);
-        trace(GL.glGetError());
+        vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW);
 
-        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * GLfloat.sizeof(), 0);
+        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * Float32.sizeof(), 0);
         GL.glEnableVertexAttribArray(0);
 
-        var vs:String = "#version 330 core\n
-        layout (location = 0) in vec3 aPos;\n
-        
-        void main()\n
-        {\n
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n
-        }\n";
+        var vertexShader:Shader = new Shader(GL.GL_VERTEX_SHADER, "VS.glsl");
+        var fragShader:Shader = new Shader(GL.GL_FRAGMENT_SHADER, "FS.glsl");
 
-        var vertexShader:GLuint = GL.glCreateShader(GL.GL_VERTEX_SHADER);
-       
-        GL.glShaderSource(vertexShader, 1, StringPointer.fromString(vs), null);
-        GL.glCompileShader(vertexShader);
+        shaderProgram = new ShaderProgram();
+        shaderProgram.attachShader(vertexShader);
+        shaderProgram.attachShader(fragShader);
 
-        //get info
-        var success:Int = -65694;
-        GL.glGetShaderiv(vertexShader, GL.GL_COMPILE_STATUS, GLintPointer.fromInteger(success));
-        trace(success);
+        shaderProgram.link();
 
-        var fs:String = "#version 330 core\n
-        out vec4 FragColor;\n
-        
-        void main()\n
-        {\n
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n
-        } \n";
+        vertexShader.deleteShader();
+        fragShader.deleteShader();
 
-        var fragShader:GLuint = GL.glCreateShader(GL.GL_FRAGMENT_SHADER);
-
-        GL.glShaderSource(fragShader, 1, StringPointer.fromString(fs), null);
-        GL.glCompileShader(fragShader);
-
-        GL.glGetShaderiv(fragShader, GL.GL_COMPILE_STATUS, GLintPointer.fromInteger(success));
-        trace(success);
-
-        shaderProgram = GL.glCreateProgram();
-
-        GL.glAttachShader(shaderProgram, vertexShader);
-        GL.glAttachShader(shaderProgram, fragShader);
-        GL.glLinkProgram(shaderProgram);
-
-        GL.glDeleteShader(vertexShader);
-        GL.glDeleteShader(fragShader);
-
-        GL.glViewport(0, 0, width, height); // Set Viewport for first time init
+        GL.glViewport(0, 0, cast Display.currentMode.w / 2, cast Display.currentMode.h / 2); // Set Viewport for first time init
 
         SDL.stopTextInput();
         
         startAppLoop();
 
+        vao.deleteArrayObject();
+        shaderProgram.deleteProgram();
+
         // Exiting our application from here on out, we can clean up everything!!
         SDL.destroyWindow(window);
         // SDL.destroyRenderer(state.renderer);
         SDL.quit();
+
+        Sys.exit(0);
     }
 
     /**
@@ -339,8 +278,8 @@ class Main {
         GL.glClearColor(red, 1, blue, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
-        GL.glUseProgram(shaderProgram);
-        GL.glBindVertexArray(vertexArrayObject);
+        shaderProgram.useProgram();
+        vao.bindVertexArray();
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
 
         SDL.GL_SwapWindow(window);
@@ -409,10 +348,4 @@ class Main {
             case SDL_PIXELFORMAT_NV21        :'NV21';
         }
     }
-
-    static function drawTriangle() {
-        // GL.glBufferData(GL.GL_ARRAY_BUFFER, Native.sizeof(data), vertices, GL.GL_STATIC_DRAW);
-
-    }
-
 }

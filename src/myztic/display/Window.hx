@@ -1,16 +1,23 @@
 package myztic.display;
 
+import sdl.GLContext;
 import sdl.SDL;
+
+import myztic.util.ErrorHandler.checkSDLError;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.DisplayHandler as Display;
 
 class Window {
     public var id:Int;
     public var handle:sdl.Window;
+    public var glContext:GLContext;
 
     private function new() {}
     public static function create(params:WindowParams):Window {
         var win = new Window();
+
+        //load displaymode
+        Display.currentMode = SDL.getCurrentDisplayMode(0);
         
         // TODO: test this concoction
         final size = params.init_scale ?? [cast Display.currentMode.w / 2, cast Display.currentMode.h / 2];
@@ -18,6 +25,9 @@ class Window {
         final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;
         
         win.handle = SDL.createWindow(params.name, pos[0], pos[1], size[0], size[1], _flags);
+
+        win.glContext = SDL.GL_CreateContext(win.handle);
+        checkSDLError(SDL.GL_MakeCurrent(win.handle, win.glContext));
 
         return win;
     }

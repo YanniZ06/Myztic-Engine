@@ -1,10 +1,17 @@
 package graphics.oglh;
 
-import cpp.Pointer;
+
+
+import myztic.util.ErrorHandler;
+import cpph.Tools;
+import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
-import cpph.StarArray;
 import opengl.OpenGL.GLuint;
 import opengl.OpenGL as GL;
+
+import cpp.Float32;
+import cpph.StarArray;
+import cpp.Pointer;
 import cpp.Star;
 import cpp.UInt32;
 
@@ -24,15 +31,32 @@ class VBO {
         return new VBO(a);
     }
 
+    public inline function changeVertexBufferData(vertices:Array<GLfloat>, drawType:Int):Void{
+        final currentBoundVertexBuffer:cpp.Int32 = -55464;
+        GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, currentBoundVertexBuffer.addressOf());
+        if (currentBoundVertexBuffer == -55464) throw 'COULD NOT GET CURRENT BOUND VERTEX BUFFER OBJECT'; 
+        else if(currentBoundVertexBuffer != handle) trace('[[WARNING]]: Trying to modify data of vbo: $currentBoundVertexBuffer from the unbound buffer $handle');
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), drawType);
+        
+    }
+
+    public inline function bindVertexBuffer():Void
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, handle);
+
     // todo: make this return a stararray and also use one to spare ourselves the necessity of..
     public static inline function makeNum(n:Int):Array<VBO> {
-        var ptr:Star<GLuint> = Native.malloc(n * 4); // Allocate a pointer big enough to host our VBO's
+        var ptr:Star<GLuint> = Native.malloc(n * GLuint.sizeof()); // Allocate a pointer big enough to host our VBO's
         
         GL.glGenBuffers(n, ptr);
-        var vbos:Array<VBO> = [];
-        
-        for(vbo in Pointer.fromStar(ptr).toUnmanagedArray(n)) vbos.push(new VBO(vbo)); // todo: .. this for-loop.
-        return vbos;
+
+        return [for(vbo in Pointer.fromStar(ptr).toUnmanagedArray(n)) new VBO(vbo)]; // todo: .. this for-loop.
+    }
+
+    public inline function deleteBuffer():Void{
+        final int:Int = -99;
+        GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, int.addressOf());
+        if (int == handle) GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        GL.glDeleteBuffers(1, handle.addressOf());
     }
 
     // public inline function ptr():Star<GLuint> 
