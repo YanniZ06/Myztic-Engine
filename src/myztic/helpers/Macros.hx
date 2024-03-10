@@ -6,6 +6,31 @@ import haxe.macro.Context;
 import haxe.macro.TypeTools;
 import haxe.macro.Type;
 
+import sys.io.File;
+import sys.FileSystem;
+
+class AssetMacro
+{
+    public static macro function copyAndMakeAssets():Void{
+        final arr:Array<String> = FileSystem.readDirectory("./");
+        if(arr.indexOf("output") == -1) FileSystem.createDirectory("output");
+        for(fileFolder in arr){
+            //copy assets into output
+            if (fileFolder == "Assets"){
+                
+                FileSystem.createDirectory("output/Assets");
+
+                for (folder in FileSystem.readDirectory("Assets/")){
+                    FileSystem.createDirectory('output/Assets/$folder');
+
+                    for (file in FileSystem.readDirectory('Assets/$folder'))
+                        File.copy('Assets/$folder/$file', 'output/Assets/$folder/$file');
+                }
+            }
+        }
+    }
+}
+
 /**
  * Star Array Macro
  */

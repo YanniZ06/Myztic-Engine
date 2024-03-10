@@ -11,7 +11,7 @@ class Shader
 
     public function new(shaderType:GLenum, file:String){
         handle = OpenGL.glCreateShader(shaderType);
-        OpenGL.glShaderSource(handle, 1, StringPointer.fromString(File.getContent(file)), null);
+        OpenGL.glShaderSource(handle, 1, StringPointer.fromString(File.getContent('Assets/Shaders/$file')), null);
         OpenGL.glCompileShader(handle);
         ErrorHandler.checkShaderCompileStatus(handle);
     }

@@ -2,6 +2,7 @@
 --main Main
 --dce std
 
+--macro myztic.helpers.Macros.AssetMacro.copyAndMakeAssets()
 
 --library linc_sdl
 --library linc_opengl
