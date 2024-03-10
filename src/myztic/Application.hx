@@ -1,6 +1,6 @@
 package myztic;
 
-import myztic.util.ErrorHandler;
+import myztic.helpers.ErrorHandler;
 import cpp.Function;
 import sdl.SDL;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;

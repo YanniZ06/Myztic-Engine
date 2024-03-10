@@ -1,7 +1,7 @@
 package graphics.oglh;
 
 import opengl.OpenGL;
-import cpph.StarArray;
+import myztic.helpers.StarArray;
 
 //TODO: do we still need this? keep for now
 /**

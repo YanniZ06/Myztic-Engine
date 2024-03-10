@@ -1,8 +1,6 @@
-package myztic.util;
+package myztic.helpers;
 
-import haxe.macro.Compiler;
 #if macro
-
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.TypeTools;

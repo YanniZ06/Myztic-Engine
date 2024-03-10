@@ -2,15 +2,15 @@ package graphics.oglh;
 
 
 
-import myztic.util.ErrorHandler;
-import cpph.Tools;
+import myztic.helpers.ErrorHandler;
+import myztic.helpers.Tools;
 import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLuint;
 import opengl.OpenGL as GL;
 
 import cpp.Float32;
-import cpph.StarArray;
+import myztic.helpers.StarArray;
 import cpp.Pointer;
 import cpp.Star;
 import cpp.UInt32;

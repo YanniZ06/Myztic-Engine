@@ -1,4 +1,4 @@
-package cpph;
+package myztic.helpers;
 
 import cpp.Pointer;
 import cpp.Star;

@@ -1,6 +1,6 @@
 package graphics.oglh;
 
-import myztic.util.ErrorHandler;
+import myztic.helpers.ErrorHandler;
 import opengl.StringPointer;
 import opengl.OpenGL;
 import sys.io.File;

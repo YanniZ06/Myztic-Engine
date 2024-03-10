@@ -31,13 +31,13 @@ import graphics.oglh.VBO;
 import graphics.oglh.VAO;
 import graphics.oglh.Shader;
 
-import myztic.util.StarArray;
-//import myztic.util.StarArray;
+import myztic.helpers.StarArray;
+//import myztic.helpers.StarArray;
 import myztic.display.DisplayHandler as Display;
 import myztic.Application;
-import myztic.util.ErrorHandler;
+import myztic.helpers.ErrorHandler;
 
-import cpph.Tools;
+import myztic.helpers.Tools;
 import cpp.Float32;
 
 using cpp.Native;

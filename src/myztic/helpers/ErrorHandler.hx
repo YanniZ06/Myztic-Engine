@@ -1,4 +1,4 @@
-package myztic.util;
+package myztic.helpers;
 
 import cpp.Star;
 import cpp.Char;

@@ -3,7 +3,7 @@ package myztic.display;
 import sdl.GLContext;
 import sdl.SDL;
 
-import myztic.util.ErrorHandler.checkSDLError;
+import myztic.helpers.ErrorHandler.checkSDLError;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.DisplayHandler as Display;
 

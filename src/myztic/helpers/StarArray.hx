@@ -1,10 +1,10 @@
-package myztic.util;
+package myztic.helpers;
 
 //! IMPORTANT: IF YOU ARE MODIFYING THIS YOU NEED TO MODIFY THE MACRO BUILD ASWELL, THIS IS CLASS IS JUST A PLACEHOLDER FOR DOCS!
 /*
-If you want to see the actual code of the StarArray, go to myztic.util.Macros.STRMacro.makeInstanceOf() !
+If you want to see the actual code of the StarArray, go to myztic.helpers.Macros.STRMacro.makeInstanceOf() !
 */
-@:genericBuild(myztic.util.Macros.STRMacro.build())
+@:genericBuild(myztic.helpers.Macros.STRMacro.build())
 class StarArray<T> {
     public var data:cpp.Star<T>;
     public var data_index(default, set):Int = 0;

@@ -1,3 +1,3 @@
-package myztic.util;
+package myztic.helpers;
 
 class Math {}
