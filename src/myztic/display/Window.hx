@@ -7,7 +7,7 @@ import myztic.helpers.ErrorHandler.checkSDLError;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.DisplayHandler as Display;
 
-class Window {
+class Window { // todo: make this more fleshed out
     public var id:Int;
     public var handle:sdl.Window;
     public var glContext:GLContext;
@@ -19,7 +19,6 @@ class Window {
         //load displaymode
         Display.currentMode = SDL.getCurrentDisplayMode(0);
         
-        // TODO: test this concoction
         final size = params.init_scale ?? [cast Display.currentMode.w / 2, cast Display.currentMode.h / 2];
         final pos = params.init_pos ?? [cast (Display.currentMode.w - size[0]) / 2, cast (Display.currentMode.h - size[1]) / 2];
         final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;

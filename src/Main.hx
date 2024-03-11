@@ -69,13 +69,6 @@ class Main {
     static function main() {
         fps = 60;
 
-        var str:StarArray<cpp.Int32> = new StarArray<cpp.Int32>(3);
-        str.setCurrent(2);
-        str.set(1, 4);
-        str.set(2, 6);
-        trace(str.size);
-        trace(str.getCurrent());
-        trace(str.get(0));
 
         // str.process();
 
@@ -107,7 +100,7 @@ class Main {
         // */
 
 
-        final vertices:Array<GLfloat> = [
+        final vertices:Array<GLfloat> = [ // todo: StarArray.fillFrom
             -0.5, -0.5, 0.0,
             0.5, -0.5, 0.0,
             0.0,  0.5, 0.0
@@ -120,7 +113,7 @@ class Main {
 
         vertexBuffer.bindVertexBuffer();
 
-        vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW);
+        vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
 
         GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * Float32.sizeof(), 0);
         GL.glEnableVertexAttribArray(0);

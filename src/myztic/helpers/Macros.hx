@@ -41,17 +41,22 @@ class STRMacro {
 		switch (Context.getLocalType()) {
 			case TInst(_, [t]): // Got a class instance with a type parameter over here!
 				switch (t) {
-					case TInst(n, []):
-						final g = n.get();
-                        if(g.name == 'T') return null;
-						return makeInstanceOf("StarArray",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
+					case TInst(tRef, []):
+						final type = tRef.get();
+                        if(type.name == 'T') return null;
+						return makeInstanceOf("StarArray",  type.pack, type.module, type.name, TypeTools.toComplexType(t) );
                     
-                    case TAbstract(n, []):
-                        final g = n.get();
-                        if(g.name == 'T') return null;
-                        return makeInstanceOf("StarArray",  g.pack, g.module, g.name, TypeTools.toComplexType(t) );
+                    case TAbstract(tRef, []):
+                        final type = tRef.get();
+                        if(type.name == 'T') return null;
+						return makeInstanceOf("StarArray",  type.pack, type.module, type.name, TypeTools.toComplexType(t) );
+                    
+                    case TType(tRef, []):
+						final type = tRef.get();
+                        if(type.name == 'T') return null;
+						return makeInstanceOf("StarArray",  type.pack, type.module + '.' + type.name, type.name, TypeTools.toComplexType(t) );
 
-					case t: Context.error(" :: Class or abstract expected instead of: " + t, Context.currentPos());
+					case t: Context.error(" :: Class, Abstract or Typedefinition expected instead of: " + t, Context.currentPos());
 				}
 			case t: // This never happens
 		}
@@ -66,7 +71,8 @@ class STRMacro {
         cache[className] = true;
 
         var typeE:Expr = Context.parse(module, Context.currentPos()); // We create an expression thats our <T> type path, so we can access it in sizeof as a REAL class
-        
+        // todo: test if we can just always parse (module + "." + name) with no repercussions
+
         // ---------------------------------------------- //
         var c = macro 	
         class $className {
@@ -78,7 +84,7 @@ class STRMacro {
             /**
              * The current index of the pointer for this StarArray.
              */
-            public var data_index(default, set):Int = 0;
+            public var data_index(get, set):Int;
 
             /**
              * The length of this StarArray in elements.
@@ -92,6 +98,7 @@ class STRMacro {
         
             private var firstIndex:cpp.Star<$type>; // THIS SHOULD NEVER CHANGE!!! but it perhaps could if you expand the memory this star uses, be cautious and wary of that!
             private var type_size:Int;
+            private var __data_index:Int = 0;
 
             /**
              * Creates a new StarArray.
@@ -139,11 +146,33 @@ class STRMacro {
                 untyped __cpp__('*{0} = {1}', data, value);
             }
 
-            inline function set_data_index(i:Int):Int { 
-                data_index = i;
-                untyped __cpp__('{0} = {1} + {2}', data, firstIndex, i); // firstIndex + i makes sure we always set our position from the beginning
-                return i;
+            /**
+             * Fills as many element slots from this StarArray as there are elements supplied via the second (rest) argument, starting from the given index.
+             * 
+             * WARNING: Keep in mind this function currently does NOT resize the array if the reserved length is exceeded.
+             * 
+             * Results for writing beyond the reserved length are unspecified.
+             * @param index The index to start filling at. If this value is lower than one, the result is unspecified.
+             * @param elements The elements to fill the array with. This is a rest argument and takes in as many elements as you supply like they are regular arguments.
+             */
+            public function fillFrom(index:Int, ...elements:$type):Void { // todo: test. maybe just use an array instead of rest args
+                untyped __cpp__('{0} = {1} + {2}', data, firstIndex, index);
+                for(elem_n in 0...elements.length-1) {
+                    setCurrent(elements[elem_n]);
+                    incrPtr();
+                }
+                setCurrent(elements[elements.length-1]);
+                __data_index = index;
             }
+
+            inline function set_data_index(i:Int):Int { 
+                untyped __cpp__('{0} = {1} + {2}', data, firstIndex, i); // firstIndex + i makes sure we always set our position from the beginning
+                return __data_index = i;
+            }
+            inline function get_data_index():Int return __data_index;
+
+            inline function incrPtr():Void untyped __cpp__('{0}++', data);
+            inline function decrPtr():Void untyped __cpp__('{0}--', data);
         }
         // ---------------------------------------------- //
 

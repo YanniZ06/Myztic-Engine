@@ -32,24 +32,25 @@ class VBO {
     }
 
     public inline function changeVertexBufferData(vertices:Array<GLfloat>, drawType:Int):Void{
+        #if MYZTIC_DEBUG_GL
         final currentBoundVertexBuffer:cpp.Int32 = -55464;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, currentBoundVertexBuffer.addressOf());
+
         if (currentBoundVertexBuffer == -55464) throw 'COULD NOT GET CURRENT BOUND VERTEX BUFFER OBJECT'; 
         else if(currentBoundVertexBuffer != handle) trace('[[WARNING]]: Trying to modify data of vbo: $currentBoundVertexBuffer from the unbound buffer $handle');
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), drawType);
-        
+        #end
+
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), drawType); // todo: StarArray
     }
 
     public inline function bindVertexBuffer():Void
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, handle);
 
-    // todo: make this return a stararray and also use one to spare ourselves the necessity of..
     public static inline function makeNum(n:Int):Array<VBO> {
-        var ptr:Star<GLuint> = Native.malloc(n * GLuint.sizeof()); // Allocate a pointer big enough to host our VBO's
-        
-        GL.glGenBuffers(n, ptr);
+        var ptr:StarArray<GLuint> = new StarArray<GLuint>(n);
+        GL.glGenBuffers(n, ptr.data);
 
-        return [for(vbo in Pointer.fromStar(ptr).toUnmanagedArray(n)) new VBO(vbo)]; // todo: .. this for-loop.
+        return [for(n_vbo in 0...n) new VBO(ptr.get(n_vbo))]; // todo: GET RID OF THIS FOR LOOP I HATE IT GRAHHH
     }
 
     public inline function deleteBuffer():Void{

@@ -5,9 +5,9 @@ package myztic.helpers;
 If you want to see the actual code of the StarArray, go to myztic.helpers.Macros.STRMacro.makeInstanceOf() !
 */
 @:genericBuild(myztic.helpers.Macros.STRMacro.build())
-class StarArray<T> {
+class StarArray<T> { // Todo: when docs are made, figure out what parts of this "fake class" we actually need
     public var data:cpp.Star<T>;
-    public var data_index(default, set):Int = 0;
+    public var data_index(get, set):Int;
     public var length:Int;
     public var size:Int;
 
@@ -29,8 +29,13 @@ class StarArray<T> {
 
     public inline function setCurrent(value:T):Void {}
 
+    public function fillFrom(index:Int, ...elements:T):Void {}
 
     inline function set_data_index(i:Int):Int { 
+        return -1;
+    }
+
+    inline function get_data_index():Int { 
         return -1;
     }
 
