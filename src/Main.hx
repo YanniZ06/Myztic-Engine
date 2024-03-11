@@ -73,7 +73,7 @@ class Main {
         // str.process();
 
         Application.initMyztic();
-        window = Application.getMainWindow();
+        window = Application.getMainWindow().handle;
 
         /*
         trace('Displays:');
@@ -103,7 +103,12 @@ class Main {
         final vertices:Array<GLfloat> = [ // todo: StarArray.fillFrom
             -0.5, -0.5, 0.0,
             0.5, -0.5, 0.0,
-            0.0,  0.5, 0.0
+            -0.5,  0.5, 0.0
+            ,
+
+            -0.5, 0.5, 0.0,
+            0.5, 0.5, 0.0,
+            0.5,  -0.5, 0.0
         ];
 
         vao = VAO.make();
@@ -112,7 +117,6 @@ class Main {
         vao.bindVertexArray();
 
         vertexBuffer.bindVertexBuffer();
-
         vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
 
         GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * Float32.sizeof(), 0);
@@ -129,8 +133,9 @@ class Main {
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE);
 
-        GL.glViewport(0, 0, cast Display.currentMode.w / 2, cast Display.currentMode.h / 2); // Set Viewport for first time init
+        // GL.glViewport(0, 0, cast Display.currentMode.w / 2, cast Display.currentMode.h / 2); // Set Viewport for first time init
 
         SDL.stopTextInput();
         
@@ -276,12 +281,12 @@ class Main {
     }
 
     static function render():Void {
-        GL.glClearColor(red, 1, blue, 1);
+        GL.glClearColor(0, 0, 0.2, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         shaderProgram.useProgram();
         vao.bindVertexArray();
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6);
 
         SDL.GL_SwapWindow(window);
     }

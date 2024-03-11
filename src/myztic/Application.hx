@@ -11,11 +11,12 @@ import glad.Glad;
 
 import myztic.display.Window;
 
+// TODO: VERY BIG: MAKE SURE CONTEXT SPECIFIC OPERATIONS LIKE VIEWPORT ARE DONE PER-WINDOW!!!
 class Application {
     public static var windows:Array<Window> = [];
 
-    public static inline function getMainWindow():sdl.Window
-        return windows[0].handle;
+    public static inline function getMainWindow():Window
+        return windows[0];
     
     public static function initMyztic():Void{
         if(SDL.init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
@@ -43,6 +44,8 @@ class Application {
             throw 'OpenGL version 3.3 is not supported on this device.
             \nCheck if your drivers are installed properly and if your GPU supports GL 3.3.
             \nRegistered Version: $glV';
+        
+        opengl.OpenGL.glViewport(0, 0, getMainWindow().width, getMainWindow().height); // Set Viewport for first time init
         
         trace("RUNNING ON OPENGL VERSION: " + glV);
         trace("GLSL VERSION IS: " + GLH.getString(OpenGL.GL_SHADING_LANGUAGE_VERSION));
