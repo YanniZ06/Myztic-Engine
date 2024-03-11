@@ -9,10 +9,11 @@ class Shader
 {
     public var handle:GLuint;
 
-    public function new(shaderType:GLenum, file:String){
+    public function new(shaderType:GLenum, file:String) {
         handle = OpenGL.glCreateShader(shaderType);
         OpenGL.glShaderSource(handle, 1, StringPointer.fromString(File.getContent('Assets/Shaders/$file')), null);
         OpenGL.glCompileShader(handle);
+        
         ErrorHandler.checkShaderCompileStatus(handle);
     }
 
@@ -24,7 +25,7 @@ class ShaderProgram
 {
     public var handle:GLuint;
 
-    public function new(){
+    public function new() {
         handle = OpenGL.glCreateProgram();
     }
 

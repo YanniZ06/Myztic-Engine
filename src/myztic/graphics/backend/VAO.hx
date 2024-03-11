@@ -1,6 +1,7 @@
 package myztic.graphics.backend;
 
 import opengl.OpenGL;
+import myztic.helpers.StarArray;
 
 import cpp.Pointer;
 import cpp.Star;
@@ -10,11 +11,11 @@ using cpp.Native;
 class VAO{
     public var handle:GLuint;
 
-    public function new(handle:GLuint){
+    public function new(handle:GLuint) {
         this.handle = handle;
     }
 
-    public static inline function make():VAO{
+    public static inline function make():VAO {
         final vao:VAO = new VAO(-9);
 
         OpenGL.glGenVertexArrays(1, vao.handle.addressOf());
@@ -29,18 +30,17 @@ class VAO{
     public static inline function unbindGLVertexArray():Void
         OpenGL.glBindVertexArray(0);
 
-    //todo: yanni change this
-    public inline static function makeArr(n:Int):Array<VAO>{
-        final ptr:Star<GLuint> = Native.malloc(GLuint.sizeof() * n);
+    public inline static function makeArr(n:Int):Array<VAO> {
+        var ptr:StarArray<GLuint> = new StarArray<GLuint>(n);
+        OpenGL.glGenVertexArrays(n, ptr.data);
 
-        OpenGL.glGenVertexArrays(n, ptr);
-
-        return [for(uint in Pointer.fromStar(ptr).toUnmanagedArray(n)) new VAO(uint)];
+        return [for(n_vao in 0...n) new VAO(ptr.get(n_vao))];
     }
 
-    public inline function deleteArrayObject():Void{
+    public inline function deleteArrayObject():Void {
         final int:Int = -99;
         OpenGL.glGetIntegerv(OpenGL.GL_VERTEX_ARRAY_BINDING, int.addressOf());
+
         if (int == handle) OpenGL.glBindVertexArray(0);
         OpenGL.glDeleteBuffers(1, handle.addressOf());
     }

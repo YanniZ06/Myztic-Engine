@@ -31,7 +31,7 @@ class VBO {
         return ret;
     }
 
-    public inline function changeVertexBufferData(vertices:StarArray<GLfloat>, drawType:Int):Void{
+    public inline function changeVertexBufferData(vertices:StarArray<GLfloat>, drawType:Int):Void {
         #if MYZTIC_DEBUG_GL
         final currentBoundVertexBuffer:cpp.Int32 = -55464;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, currentBoundVertexBuffer.addressOf());
@@ -53,9 +53,10 @@ class VBO {
         return [for(n_vbo in 0...n) new VBO(ptr.get(n_vbo))];
     }
 
-    public inline function deleteBuffer():Void{
+    public inline function deleteBuffer():Void {
         final int:Int = -99;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, int.addressOf());
+        
         if (int == handle) GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         GL.glDeleteBuffers(1, handle.addressOf());
     }
