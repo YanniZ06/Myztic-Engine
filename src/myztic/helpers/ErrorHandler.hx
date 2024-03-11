@@ -19,8 +19,6 @@ class ErrorHandler {
     public static function checkSDLError(resultCode:Int, ?posInfo:haxe.PosInfos):Void
         if(resultCode != 0) throw 'Could not run this SDL function with resultCode: $resultCode\nline: ${posInfo.lineNumber} class: ${posInfo.className}\nSDL ERROR INFO: ${sdl.SDL.getError()}';
 
-
-
     public static function checkShaderCompileStatus(shader:GLuint):Void{
         final result:Int = -44646;
         OpenGL.glGetShaderiv(shader, OpenGL.GL_COMPILE_STATUS, result.addressOf());
@@ -37,6 +35,8 @@ class ErrorHandler {
             throw 'SHADER COULD NOT COMPILE, LOG: ' + us;
         }
     }
+
+    //TODO: WRITE A FUNCTION THAT CHECKS OUT GL AND CHECKS FOR ERRORS
 
     /**
      * [Description] Converts a CPP Bool (int) into a haxe bool (true or false)

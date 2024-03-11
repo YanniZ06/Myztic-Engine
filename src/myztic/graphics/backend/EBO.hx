@@ -1,6 +1,6 @@
 package myztic.graphics.backend;
 
-import cpp.Float32;
+import cpp.UInt32;
 import myztic.helpers.StarArray;
 import opengl.OpenGL;
 
@@ -35,7 +35,7 @@ class EBO{
     public inline function bind():Void
         OpenGL.glBindBuffer(OpenGL.GL_ELEMENT_ARRAY_BUFFER, handle);
 
-    public inline function changeElementBufferData(indices:StarArray<Float32>):Void{
+    public inline function changeElementBufferData(indices:StarArray<UInt32>):Void{
         #if MYZTIC_DEBUG_GL
         final currentBoundElementBuffer:cpp.Int32 = -55464;
         OpenGL.glGetIntegerv(OpenGL.GL_ELEMENT_ARRAY_BUFFER_BINDING, currentBoundElementBuffer.addressOf());

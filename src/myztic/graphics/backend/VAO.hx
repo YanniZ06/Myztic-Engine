@@ -26,6 +26,9 @@ class VAO{
     public inline function bindVertexArray():Void
         OpenGL.glBindVertexArray(handle);
 
+    public static inline function unbindGLVertexArray():Void
+        OpenGL.glBindVertexArray(0);
+
     //todo: yanni change this
     public inline static function makeArr(n:Int):Array<VAO>{
         final ptr:Star<GLuint> = Native.malloc(GLuint.sizeof() * n);

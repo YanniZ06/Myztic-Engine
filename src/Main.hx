@@ -28,15 +28,13 @@ import glad.Glad;
 
 import myztic.graphics.backend.VBO;
 import myztic.graphics.backend.VAO;
+import myztic.graphics.backend.EBO;
 import myztic.graphics.backend.Shader;
-
 import myztic.helpers.StarArray;
-//import myztic.helpers.StarArray;
 import myztic.display.DisplayHandler as Display;
 import myztic.Application;
 import myztic.helpers.ErrorHandler;
 
-import myztic.helpers.Tools;
 import cpp.Float32;
 
 using cpp.Native;
@@ -61,6 +59,7 @@ class Main {
 
     static var shaderProgram:ShaderProgram;
     static var vao:VAO;
+    static var ebo:EBO;
 
     static function main() {
         fps = 60;
@@ -96,28 +95,31 @@ class Main {
         // */
 
 
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(18);
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(12);
         vertices.fillFrom(0, 
-            // Triangle 1 (left)
-            [-0.5, -0.5, 0.0,
+            [0.5,  0.5, 0.0,
             0.5, -0.5, 0.0,
-            -0.5,  0.5, 0.0
-            ,
-            // Triangle 2 (right)
-            -0.5, 0.5, 0.0,
-            0.5, 0.5, 0.0,
-            0.5,  -0.5, 0.0]
+            -0.5, -0.5, 0.0,
+            -0.5,  0.5, 0.0]
         );
         
         vertices.data_index = 0;
+        
+        var indices:StarArray<cpp.UInt32> = new StarArray<cpp.UInt32>(6);
+        indices.fillFrom(0, [0, 1, 3, 1, 2, 3]);
+        indices.data_index = 0;
 
         vao = VAO.make();
+        ebo = EBO.make();
         final vertexBuffer:VBO = VBO.make();
        
         vao.bindVertexArray();
 
         vertexBuffer.bindVertexBuffer();
         vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
+
+        ebo.bind();
+        ebo.changeElementBufferData(indices);
 
         GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * Float32.sizeof(), 0);
         GL.glEnableVertexAttribArray(0);
@@ -133,7 +135,7 @@ class Main {
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
-        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE);
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 
         // GL.glViewport(0, 0, cast Display.currentMode.w / 2, cast Display.currentMode.h / 2); // Set Viewport for first time init
 
@@ -286,7 +288,10 @@ class Main {
 
         shaderProgram.useProgram();
         vao.bindVertexArray();
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6);
+
+        GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
+
+        VAO.unbindGLVertexArray();
 
         SDL.GL_SwapWindow(window);
     }
