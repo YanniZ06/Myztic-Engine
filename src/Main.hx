@@ -26,10 +26,9 @@ import opengl.VoidPointer;
 import opengl.StringPointer;
 import glad.Glad;
 
-import graphics.oglh.GLH;
-import graphics.oglh.VBO;
-import graphics.oglh.VAO;
-import graphics.oglh.Shader;
+import myztic.graphics.backend.VBO;
+import myztic.graphics.backend.VAO;
+import myztic.graphics.backend.Shader;
 
 import myztic.helpers.StarArray;
 //import myztic.helpers.StarArray;
@@ -109,7 +108,8 @@ class Main {
             0.5, 0.5, 0.0,
             0.5,  -0.5, 0.0]
         );
-        // vertices.data_index = 0;
+        
+        vertices.data_index = 0;
 
         vao = VAO.make();
         final vertexBuffer:VBO = VBO.make();

@@ -1,4 +1,4 @@
-package graphics.oglh;
+package myztic.graphics.backend;
 
 import cpp.Native;
 import cpp.Float32;

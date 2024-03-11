@@ -5,7 +5,6 @@ import cpp.Function;
 import sdl.SDL;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;
 
-import graphics.oglh.GLH;
 import opengl.OpenGL;
 import glad.Glad; 
 
@@ -36,7 +35,7 @@ class Application {
             throw 'Failed to initialize GLAD! Most likely outdated OpenGL Version, Required: OpenGL 3.3, ERROR CODE: $gladResult';
         
         var glV:String;
-        try { glV = GLH.getString(OpenGL.GL_VERSION); }
+        try { glV = OpenGL.getString(OpenGL.GL_VERSION); }
         catch(e) { throw 'Could not automatically get current OpenGL version. Please check manually. (GL 3.3 is required) [ERROR::$e]'; }
 
         //i am actually so sorry
@@ -48,9 +47,9 @@ class Application {
         opengl.OpenGL.glViewport(0, 0, getMainWindow().width, getMainWindow().height); // Set Viewport for first time init
         
         trace("RUNNING ON OPENGL VERSION: " + glV);
-        trace("GLSL VERSION IS: " + GLH.getString(OpenGL.GL_SHADING_LANGUAGE_VERSION));
+        trace("GLSL VERSION IS: " + OpenGL.getString(OpenGL.GL_SHADING_LANGUAGE_VERSION));
         
         trace('Current context is made context?? - ${SDL.GL_GetCurrentContext() == windows[0].glContext}');
-        trace('Vendor: ${GLH.getString(OpenGL.GL_VENDOR)}');
+        trace('Vendor: ${OpenGL.getString(OpenGL.GL_VENDOR)}');
     }
 }

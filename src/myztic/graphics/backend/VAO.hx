@@ -1,4 +1,4 @@
-package graphics.oglh;
+package myztic.graphics.backend;
 
 import opengl.OpenGL;
 
@@ -15,12 +15,12 @@ class VAO{
     }
 
     public static inline function make():VAO{
-        final vertexArrayObject:GLuint = -9;
+        final vao:VAO = new VAO(-9);
 
-        OpenGL.glGenVertexArrays(1, vertexArrayObject.addressOf());
-        #if MYZTIC_DEBUG_GL if (vertexArrayObject == -9) throw 'Could not generate a vertex array object'; #end
+        OpenGL.glGenVertexArrays(1, vao.handle.addressOf());
+        #if MYZTIC_DEBUG_GL if (vao.handle == -9) throw 'Could not generate a vertex array object'; #end
 
-        return new VAO(vertexArrayObject);
+        return vao;
     }
 
     public inline function bindVertexArray():Void

@@ -1,4 +1,4 @@
-package graphics.oglh;
+package myztic.graphics.backend;
 
 
 
@@ -24,11 +24,11 @@ class VBO {
     }
 
     public static inline function make():VBO {
-        var a:GLuint = -9;
+        final ret:VBO = new VBO(-99);
 
-        GL.glGenBuffers(1, a.addressOf());
-        #if MYZTIC_DEBUG_GL if (a == -9) throw 'Could not generate a vertex buffer object'; #end
-        return new VBO(a);
+        GL.glGenBuffers(1, ret.handle.addressOf());
+        #if MYZTIC_DEBUG_GL if (ret.handle == -99) throw 'Could not generate a vertex buffer object'; #end
+        return ret;
     }
 
     public inline function changeVertexBufferData(vertices:StarArray<GLfloat>, drawType:Int):Void{

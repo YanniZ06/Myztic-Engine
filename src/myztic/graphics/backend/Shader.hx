@@ -1,4 +1,4 @@
-package graphics.oglh;
+package myztic.graphics.backend;
 
 import myztic.helpers.ErrorHandler;
 import opengl.StringPointer;
