@@ -42,9 +42,6 @@ import cpp.Float32;
 
 using cpp.Native;
 
-// Interesting todo:
-// GL Integration
-
 @:headerInclude('iostream')
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
@@ -100,16 +97,19 @@ class Main {
         // */
 
 
-        final vertices:Array<GLfloat> = [ // todo: StarArray.fillFrom
-            -0.5, -0.5, 0.0,
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(18);
+        vertices.fillFrom(0, 
+            // Triangle 1 (left)
+            [-0.5, -0.5, 0.0,
             0.5, -0.5, 0.0,
             -0.5,  0.5, 0.0
             ,
-
+            // Triangle 2 (right)
             -0.5, 0.5, 0.0,
             0.5, 0.5, 0.0,
-            0.5,  -0.5, 0.0
-        ];
+            0.5,  -0.5, 0.0]
+        );
+        // vertices.data_index = 0;
 
         vao = VAO.make();
         final vertexBuffer:VBO = VBO.make();

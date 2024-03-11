@@ -31,7 +31,7 @@ class VBO {
         return new VBO(a);
     }
 
-    public inline function changeVertexBufferData(vertices:Array<GLfloat>, drawType:Int):Void{
+    public inline function changeVertexBufferData(vertices:StarArray<GLfloat>, drawType:Int):Void{
         #if MYZTIC_DEBUG_GL
         final currentBoundVertexBuffer:cpp.Int32 = -55464;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, currentBoundVertexBuffer.addressOf());
@@ -40,7 +40,7 @@ class VBO {
         else if(currentBoundVertexBuffer != handle) trace('[[WARNING]]: Trying to modify data of vbo: $currentBoundVertexBuffer from the unbound buffer $handle');
         #end
 
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, Tools.get_void_ptr_from_array(vertices), drawType); // todo: StarArray
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, cast vertices.data, drawType);
     }
 
     public inline function bindVertexBuffer():Void
@@ -50,7 +50,7 @@ class VBO {
         var ptr:StarArray<GLuint> = new StarArray<GLuint>(n);
         GL.glGenBuffers(n, ptr.data);
 
-        return [for(n_vbo in 0...n) new VBO(ptr.get(n_vbo))]; // todo: GET RID OF THIS FOR LOOP I HATE IT GRAHHH
+        return [for(n_vbo in 0...n) new VBO(ptr.get(n_vbo))];
     }
 
     public inline function deleteBuffer():Void{

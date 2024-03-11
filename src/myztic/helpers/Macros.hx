@@ -54,7 +54,7 @@ class STRMacro {
                     case TType(tRef, []):
 						final type = tRef.get();
                         if(type.name == 'T') return null;
-						return makeInstanceOf("StarArray",  type.pack, type.module + '.' + type.name, type.name, TypeTools.toComplexType(t) );
+						return makeInstanceOf("StarArray",  type.pack, type.module, type.name, TypeTools.toComplexType(t) );
 
 					case t: Context.error(" :: Class, Abstract or Typedefinition expected instead of: " + t, Context.currentPos());
 				}
@@ -70,8 +70,8 @@ class STRMacro {
 		if (cache[className] != null) return TPath({ pack:classPackage, name:className, params:[] });
         cache[className] = true;
 
-        var typeE:Expr = Context.parse(module, Context.currentPos()); // We create an expression thats our <T> type path, so we can access it in sizeof as a REAL class
-        // todo: test if we can just always parse (module + "." + name) with no repercussions
+        // We create an expression thats our <T> type path, so we can access it in sizeof as a REAL class
+        var typeE:Expr = Context.parse(module + "." + name, Context.currentPos()); 
 
         // ---------------------------------------------- //
         var c = macro 	
@@ -106,6 +106,7 @@ class STRMacro {
              */
             public function new(expectedElements:Int = 1) {
                 type_size = cpp.Native.sizeof($typeE);
+                length = expectedElements;
 
                 data = cpp.Native.malloc(type_size * expectedElements);
                 untyped __cpp__('{0} = {1}', firstIndex, data); // First pointer index should be current pointer index on initialization!
@@ -147,15 +148,15 @@ class STRMacro {
             }
 
             /**
-             * Fills as many element slots from this StarArray as there are elements supplied via the second (rest) argument, starting from the given index.
+             * Fills as many element slots from this StarArray as there are elements supplied via the second argument, starting from the given index.
              * 
              * WARNING: Keep in mind this function currently does NOT resize the array if the reserved length is exceeded.
              * 
              * Results for writing beyond the reserved length are unspecified.
              * @param index The index to start filling at. If this value is lower than one, the result is unspecified.
-             * @param elements The elements to fill the array with. This is a rest argument and takes in as many elements as you supply like they are regular arguments.
+             * @param elements The elements to fill the array with.
              */
-            public function fillFrom(index:Int, ...elements:$type):Void { // todo: test. maybe just use an array instead of rest args
+            public function fillFrom(index:Int, elements:Array<$type>):Void {
                 untyped __cpp__('{0} = {1} + {2}', data, firstIndex, index);
                 for(elem_n in 0...elements.length-1) {
                     setCurrent(elements[elem_n]);
