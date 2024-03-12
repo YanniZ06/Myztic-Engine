@@ -1,7 +1,9 @@
 #version 330 core
 out vec4 FragColor;
+
+uniform vec3 vertCol;
         
 void main()
 {
-    FragColor = vec4(1.0f, 0.0f, 0.3f, 1.0f);
+    FragColor = vec4(vertCol, 1.0f);
 } 

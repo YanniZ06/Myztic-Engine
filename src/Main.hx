@@ -64,9 +64,6 @@ class Main {
     static function main() {
         fps = 60;
 
-
-        // str.process();
-
         Application.initMyztic();
         window = Application.getMainWindow().handle;
 
@@ -94,6 +91,9 @@ class Main {
         trace('    - And linked against SDL version ${linked.major}.${linked.minor}.${linked.patch}');
         // */
 
+        final maxVtxAttribs:cpp.Int32 = 0;
+        GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
+        trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
 
         var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(12);
         vertices.fillFrom(0, 
@@ -132,6 +132,10 @@ class Main {
         shaderProgram.attachShader(fragShader);
 
         shaderProgram.link();
+
+        shaderProgram.useProgram();
+
+        shaderProgram.getUniformLocation("vertCol");
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
@@ -287,6 +291,8 @@ class Main {
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         shaderProgram.useProgram();
+
+        shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
         vao.bindVertexArray();
 
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
