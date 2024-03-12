@@ -1,5 +1,6 @@
 package myztic;
 
+import myztic.display.windowUtils.Fps;
 import myztic.helpers.ErrorHandler;
 import cpp.Function;
 import sdl.SDL;
@@ -12,15 +13,18 @@ import myztic.display.Window;
 
 // TODO: VERY BIG: MAKE SURE CONTEXT SPECIFIC OPERATIONS LIKE VIEWPORT ARE DONE PER-WINDOW!!!
 class Application {
+    public static var globalFps:Fps; // todo: implement
     public static var windows:Array<Window> = [];
 
     public static inline function getMainWindow():Window
         return windows[0];
     
+    // todo: file for initial window and app settings on startup (like window position and size, name, and other funky things)
     public static function initMyztic():Void{
         if(SDL.init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
             throw 'Error initializing SDL subsystems: ${SDL.getError()}';
         }
+        globalFps = new Fps(60);
 
         setGLAttrib( SDL_GL_RED_SIZE, 5 );
         setGLAttrib( SDL_GL_GREEN_SIZE, 5 );
@@ -49,7 +53,7 @@ class Application {
         trace("RUNNING ON OPENGL VERSION: " + glV);
         trace("GLSL VERSION IS: " + OpenGL.getString(OpenGL.GL_SHADING_LANGUAGE_VERSION));
         
-        trace('Current context is made context?? - ${SDL.GL_GetCurrentContext() == windows[0].glContext}');
+        trace('Current context is made context?? - ${SDL.GL_GetCurrentContext() == windows[0].backend.glContext}');
         trace('Vendor: ${OpenGL.getString(OpenGL.GL_VENDOR)}');
     }
 }

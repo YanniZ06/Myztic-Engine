@@ -7,4 +7,5 @@ typedef WindowParams = {
     var ?init_pos:Array<Int>;
     var ?init_scale:Array<Int>;
     var ?flags:SDLWindowFlags;
+    var ?fps:Int;
 }

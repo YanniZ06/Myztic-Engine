@@ -39,6 +39,8 @@ import cpp.Float32;
 
 using cpp.Native;
 
+// todo: BIG :: MOVE UPDATING AND FPS INTO APPLICATION!!!
+// future: use sprites ionstead of backend graphics
 @:headerInclude('iostream')
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
@@ -54,6 +56,7 @@ class Main {
 
     static var shouldClose:Bool = false;
     static var window:Window;
+    static var myzWin:myztic.display.Window;
 
     static var glc:sdl.GLContext;
 
@@ -65,7 +68,8 @@ class Main {
         fps = 60;
 
         Application.initMyztic();
-        window = Application.getMainWindow().handle;
+        myzWin = Application.getMainWindow();
+        window = myzWin.backend.handle;
 
         /*
         trace('Displays:');
@@ -99,6 +103,7 @@ class Main {
         vertices.fillFrom(0, 
             [0.5,  0.5, 0.0,
             0.5, -0.5, 0.0,
+
             -0.5, -0.5, 0.0,
             -0.5,  0.5, 0.0]
         );
@@ -174,9 +179,12 @@ class Main {
     
     static var textInput = "";
     static function startAppLoop():Void {
+        var newTime = 0.0;
+        var frameTime = newTime - currentTime;
+        
         while(!shouldClose) { 
-            final newTime = Timer.stamp();
-            var frameTime = newTime - currentTime;
+            newTime = Timer.stamp();
+            frameTime = newTime - currentTime;
 
             currentTime = newTime;
             accumulator = if (frameTime > 0.25) accumulator + 0.25 else accumulator + frameTime;
