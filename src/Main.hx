@@ -1,5 +1,6 @@
 package;
 
+import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -67,8 +68,8 @@ class Main {
     static function main() {
         fps = 60;
 
-        Application.initMyztic();
-        myzWin = Application.getMainWindow();
+        Application.initMyztic(new InitScene());
+        myzWin = Application.focusedWindow();
         window = myzWin.backend.handle;
 
         /*
@@ -155,9 +156,8 @@ class Main {
         vao.deleteArrayObject();
         shaderProgram.deleteProgram();
 
-        // Exiting our application from here on out, we can clean up everything!!
+        // App Exit
         SDL.destroyWindow(window);
-        // SDL.destroyRenderer(state.renderer);
         SDL.quit();
 
         Sys.exit(0);

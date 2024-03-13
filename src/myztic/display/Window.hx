@@ -3,11 +3,12 @@ package myztic.display;
 import sdl.GLContext;
 import sdl.SDL;
 
+import myztic.Scene;
 import myztic.helpers.ErrorHandler.checkSDLError;
+import myztic.display.DisplayHandler as Display;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.windowUtils.Fps;
 import myztic.display.backend.WinBackend;
-import myztic.display.DisplayHandler as Display;
 
 class Window { // todo: make this more fleshed out
     /**
@@ -41,6 +42,11 @@ class Window { // todo: make this more fleshed out
      * Backend values of this Window, for low level operations.
      */
     public var backend(default, null):WinBackend;
+
+    /**
+     * This windows' actively rendered Scene.
+     */
+    public var scene(default, null):Scene;
     
     private var _name:String;
     private var _x:Int;
@@ -70,11 +76,28 @@ class Window { // todo: make this more fleshed out
             win._width = size[0]; win._height = size[1];
         }
 
-
+        win.backend.id = SDL.getWindowID(win.backend.handle);
         win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
         checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
 
         return win;
+    }
+
+    // Todo: add rendering!
+    public function switchScene(input:Scene):Void {
+        scene = input;
+        scene.load(this);
+    }
+
+    // Todo: Gradually add onto this
+    public function destroy():Void {
+        Application.windows.remove(backend.id);
+        SDL.destroyWindow(backend.handle);
+        scene.unload(this);
+        
+        scene = null;
+        name = null;
+        fps = null;
     }
 
     inline function set_name(v:String):String {
