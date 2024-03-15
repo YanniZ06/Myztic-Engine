@@ -35,7 +35,7 @@ import myztic.graphics.backend.Shader;
 import myztic.helpers.StarArray;
 import myztic.display.DisplayHandler as Display;
 import myztic.Application;
-import myztic.helpers.ErrorHandler;
+import myztic.graphics.backend.ShaderInputLayout;
 
 import cpp.Float32;
 
@@ -63,8 +63,9 @@ class Main {
     static var glc:sdl.GLContext;
 
     static var shaderProgram:ShaderProgram;
-    static var vao:VAO;
+    //static var vao:VAO;
     static var ebo:EBO;
+    static var inputLayout:ShaderInputLayout;
 
     static function main() {
         fps = 60;
@@ -84,14 +85,24 @@ class Main {
         final maxVtxAttribs:cpp.Int32 = 0;
         GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
         trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
+        myztic.helpers.ErrorHandler.checkGLError();
 
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(12);
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(24);
         vertices.fillFrom(0, 
-            [0.5,  0.5, 0.0,
-            0.5, -0.5, 0.0,
+            [
+                //vtx is position, color
+                0.5, 0.5, 0.0, 
+                1.0, 0.0, 0.0,
 
-            -0.5, -0.5, 0.0,
-            -0.5,  0.5, 0.0]
+                0.5, -0.5, 0.0,
+                0.0, 1.0, 0.0,
+
+                -0.5, -0.5, 0.0,
+                0.0, 0.0, 1.0,
+
+                -0.5, 0.5, 0.0,
+                1.0, 0.0, 0.0
+            ]
         );
         
         vertices.data_index = 0;
@@ -100,20 +111,22 @@ class Main {
         indices.fillFrom(0, [0, 1, 3, 1, 2, 3]);
         indices.data_index = 0;
 
-        vao = VAO.make();
+        //vao = VAO.make();
         ebo = EBO.make();
         final vertexBuffer:VBO = VBO.make();
-       
-        vao.bindVertexArray();
+
+        //vao.bindVertexArray();
 
         vertexBuffer.bindVertexBuffer();
         vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
 
+        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR]));
+        inputLayout.enableAllAttribs();
+
         ebo.bind();
         ebo.changeElementBufferData(indices);
 
-        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, false, 3 * Float32.sizeof(), 0);
-        GL.glEnableVertexAttribArray(0);
+        VBO.unbindBuffer();
 
         var vertexShader:Shader = new Shader(GL.GL_VERTEX_SHADER, "VS.glsl");
         var fragShader:Shader = new Shader(GL.GL_FRAGMENT_SHADER, "FS.glsl");
@@ -126,7 +139,7 @@ class Main {
 
         shaderProgram.useProgram();
 
-        shaderProgram.getUniformLocation("vertCol");
+        //shaderProgram.getUniformLocation("vertCol");
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
@@ -138,7 +151,8 @@ class Main {
         
         startAppLoop();
 
-        vao.deleteArrayObject();
+        //vao.deleteArrayObject();
+        inputLayout.deleteInputLayout();
         shaderProgram.deleteProgram();
 
         // App Exit
@@ -285,8 +299,9 @@ class Main {
 
         shaderProgram.useProgram();
 
-        shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
-        vao.bindVertexArray();
+        //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
+        //vao.bindVertexArray();
+        inputLayout.bindInputLayout();
 
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
 
