@@ -1,5 +1,6 @@
 package;
 
+import myztic.display.DisplayHandler;
 import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
@@ -71,23 +72,7 @@ class Main {
         Application.initMyztic(new InitScene());
         myzWin = Application.focusedWindow();
         window = myzWin.backend.handle;
-
-        /*
-        trace('Displays:');
-        var num_displays = SDL.getNumVideoDisplays();
-        for(display_index in 0 ... num_displays) {
-            var num_modes = SDL.getNumDisplayModes(display_index);
-            var name = SDL.getDisplayName(display_index);
-            trace('\tDisplay $display_index: $name');
-            var desktop_mode = SDL.getDesktopDisplayMode(display_index);
-            trace('\t Desktop Mode: ${desktop_mode.w}x${desktop_mode.h} @ ${desktop_mode.refresh_rate}Hz format:${pixel_format_to_string(desktop_mode.format)}');
-            var current_mode = SDL.getCurrentDisplayMode(display_index);
-            trace('\t Current Mode: ${current_mode.w}x${current_mode.h} @ ${current_mode.refresh_rate}Hz format:${pixel_format_to_string(current_mode.format)}');
-            for(display_mode in 0 ... num_modes) {
-                var mode = SDL.getDisplayMode(display_index, display_mode);
-                trace('\t\t mode:$display_mode ${mode.w}x${mode.h} @ ${mode.refresh_rate}Hz format:${pixel_format_to_string(mode.format)}');
-            }
-        }
+        ///*
         
         var compiled = SDL.VERSION();
         var linked = SDL.getVersion();
@@ -147,7 +132,7 @@ class Main {
         fragShader.deleteShader();
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 
-        // GL.glViewport(0, 0, cast Display.currentMode.w / 2, cast Display.currentMode.h / 2); // Set Viewport for first time init
+        // GL.glViewport(0, 0, cast Display.getCurrentMonitor().width / 2, cast Display.getCurrentMonitor().height / 2); // Set Viewport for first time init
 
         SDL.stopTextInput();
         
@@ -328,49 +313,5 @@ class Main {
         frameDurMS = 1 / st;
         usedFps = st;
         return fps = st; 
-    }
-
-
-    static function pixel_format_to_string(format:SDLPixelFormat) {
-        return switch(format) {
-            case SDL_PIXELFORMAT_UNKNOWN     :'UNKNOWN';
-            case SDL_PIXELFORMAT_INDEX1LSB   :'INDEX1LSB';
-            case SDL_PIXELFORMAT_INDEX1MSB   :'INDEX1MSB';
-            case SDL_PIXELFORMAT_INDEX4LSB   :'INDEX4LSB';
-            case SDL_PIXELFORMAT_INDEX4MSB   :'INDEX4MSB';
-            case SDL_PIXELFORMAT_INDEX8      :'INDEX8';
-            case SDL_PIXELFORMAT_RGB332      :'RGB332';
-            case SDL_PIXELFORMAT_RGB444      :'RGB444';
-            case SDL_PIXELFORMAT_RGB555      :'RGB555';
-            case SDL_PIXELFORMAT_BGR555      :'BGR555';
-            case SDL_PIXELFORMAT_ARGB4444    :'ARGB4444';
-            case SDL_PIXELFORMAT_RGBA4444    :'RGBA4444';
-            case SDL_PIXELFORMAT_ABGR4444    :'ABGR4444';
-            case SDL_PIXELFORMAT_BGRA4444    :'BGRA4444';
-            case SDL_PIXELFORMAT_ARGB1555    :'ARGB1555';
-            case SDL_PIXELFORMAT_RGBA5551    :'RGBA5551';
-            case SDL_PIXELFORMAT_ABGR1555    :'ABGR1555';
-            case SDL_PIXELFORMAT_BGRA5551    :'BGRA5551';
-            case SDL_PIXELFORMAT_RGB565      :'RGB565';
-            case SDL_PIXELFORMAT_BGR565      :'BGR565';
-            case SDL_PIXELFORMAT_RGB24       :'RGB24';
-            case SDL_PIXELFORMAT_BGR24       :'BGR24';
-            case SDL_PIXELFORMAT_RGB888      :'RGB888';
-            case SDL_PIXELFORMAT_RGBX8888    :'RGBX8888';
-            case SDL_PIXELFORMAT_BGR888      :'BGR888';
-            case SDL_PIXELFORMAT_BGRX8888    :'BGRX8888';
-            case SDL_PIXELFORMAT_ARGB8888    :'ARGB8888';
-            case SDL_PIXELFORMAT_RGBA8888    :'RGBA8888';
-            case SDL_PIXELFORMAT_ABGR8888    :'ABGR8888';
-            case SDL_PIXELFORMAT_BGRA8888    :'BGRA8888';
-            case SDL_PIXELFORMAT_ARGB2101010 :'ARGB2101010';
-            case SDL_PIXELFORMAT_YV12        :'YV12';
-            case SDL_PIXELFORMAT_IYUV        :'IYUV';
-            case SDL_PIXELFORMAT_YUY2        :'YUY2';
-            case SDL_PIXELFORMAT_UYVY        :'UYVY';
-            case SDL_PIXELFORMAT_YVYU        :'YVYU';
-            case SDL_PIXELFORMAT_NV12        :'NV12';
-            case SDL_PIXELFORMAT_NV21        :'NV21';
-        }
     }
 }

@@ -1,5 +1,6 @@
 package myztic;
 
+import myztic.display.DisplayHandler;
 import myztic.display.windowUtils.Fps;
 import myztic.helpers.ErrorHandler;
 import myztic.Scene;
@@ -32,6 +33,7 @@ class Application {
             throw 'Error initializing SDL subsystems: ${SDL.getError()}';
         }
         globalFps = new Fps(60);
+        DisplayHandler.refresh_AvailableMonitors();
 
         setGLAttrib( SDL_GL_RED_SIZE, 5 );
         setGLAttrib( SDL_GL_GREEN_SIZE, 5 );
@@ -39,7 +41,9 @@ class Application {
         setGLAttrib( SDL_GL_DEPTH_SIZE, 16 );
         setGLAttrib( SDL_GL_DOUBLEBUFFER, 1 );
 
-        final win = Window.create({name: "Myztic Engine", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}); // TODO: customizeability
+        // TODO: customizeability
+        final win = Window.create({name: "Myztic Engine", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}, 
+            DisplayHandler.monitors[0]);
         windows[win.backend.id] = win;
         focusID = win.backend.id;
 

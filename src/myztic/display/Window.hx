@@ -59,14 +59,20 @@ class Window { // todo: make this more fleshed out
         this.fps = new Fps(fps);
     }
 
-    public static function create(params:WindowParams):Window {
-        var win = new Window(params.fps ?? Application.globalFps.max);
+    /*
+    #define SDL_WINDOWPOS_CENTERED_MASK    0x2FFF0000u
+    #define SDL_WINDOWPOS_CENTERED_DISPLAY(X)  (SDL_WINDOWPOS_CENTERED_MASK|(X))
+    #define SDL_WINDOWPOS_CENTERED         SDL_WINDOWPOS_CENTERED_DISPLAY(0)
+    #define SDL_WINDOWPOS_ISCENTERED(X)    \
+    (((X)&0xFFFF0000) == SDL_WINDOWPOS_CENTERED_MASK)
+    */
 
-        //load displaymode in application init lol!!
-        Display.currentMode = SDL.getCurrentDisplayMode(0);
-        
-        final size = params.init_scale ?? [cast Display.currentMode.w / 2, cast Display.currentMode.h / 2];
-        final pos = params.init_pos ?? [cast (Display.currentMode.w - size[0]) / 2, cast (Display.currentMode.h - size[1]) / 2];
+    public static function create(params:WindowParams, ?monitor:Monitor):Window { //todo: monitor shit using SDL_WINDOWPOS_CENTERED_DISPLAY
+        var win = new Window(params.fps ?? Application.globalFps.max);
+        final winDisplay = monitor ?? Display.getCurrentMonitor() ?? Display.monitors[0];
+
+        final size = params.init_scale ?? [cast winDisplay.width / 2, cast winDisplay.height / 2];
+        final pos = params.init_pos ?? [cast (winDisplay.width - size[0]) / 2, cast (winDisplay.height - size[1]) / 2];
         final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;
         
         win.backend.handle = SDL.createWindow(params.name, pos[0], pos[1], size[0], size[1], _flags);
