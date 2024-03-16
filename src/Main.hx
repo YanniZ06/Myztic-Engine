@@ -1,7 +1,5 @@
 package;
 
-import myztic.display.DisplayHandler;
-import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -9,6 +7,7 @@ import haxe.io.BytesBuffer;
 import haxe.io.BytesData;
 import haxe.io.Bytes;
 import haxe.Timer;
+import haxe.io.BytesInput;
 
 import sdl.Keycodes;
 import sdl.Event;
@@ -16,6 +15,7 @@ import sdl.SDL;
 import sdl.Surface;
 import sdl.MessageBox;
 import sdl.Window;
+import sdl.Surface;
 import sdl.SDL.GL_SetAttribute as setGLAttrib;
 
 import opengl.OpenGL as GL;
@@ -24,18 +24,17 @@ import opengl.OpenGL.GLboolean;
 import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLintPointer;
-import opengl.VoidPointer;
-import opengl.StringPointer;
 import glad.Glad;
 
 import myztic.graphics.backend.VBO;
 import myztic.graphics.backend.VAO;
 import myztic.graphics.backend.EBO;
 import myztic.graphics.backend.Shader;
-import myztic.helpers.StarArray;
-import myztic.display.DisplayHandler as Display;
-import myztic.Application;
 import myztic.graphics.backend.ShaderInputLayout;
+import myztic.graphics.backend.Texture2D;
+import myztic.helpers.StarArray;
+import myztic.Application;
+import myztic.helpers.ErrorHandler.checkGLError;
 
 import cpp.Float32;
 
@@ -43,7 +42,6 @@ using cpp.Native;
 
 // todo: BIG :: MOVE UPDATING AND FPS INTO APPLICATION!!!
 // future: use sprites ionstead of backend graphics
-@:headerInclude('iostream')
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
     static var usedFps:Int = 0;
@@ -65,7 +63,9 @@ class Main {
     static var shaderProgram:ShaderProgram;
     //static var vao:VAO;
     static var ebo:EBO;
+    static var vbo:VBO;
     static var inputLayout:ShaderInputLayout;
+    static var texture:Texture2D;
 
     static function main() {
         fps = 60;
@@ -73,35 +73,37 @@ class Main {
         Application.initMyztic(new InitScene());
         myzWin = Application.focusedWindow();
         window = myzWin.backend.handle;
-        ///*
         
         var compiled = SDL.VERSION();
         var linked = SDL.getVersion();
         trace("Versions:");
         trace('    - We compiled against SDL version ${compiled.major}.${compiled.minor}.${compiled.patch} ...');
         trace('    - And linked against SDL version ${linked.major}.${linked.minor}.${linked.patch}');
-        // */
 
         final maxVtxAttribs:cpp.Int32 = 0;
         GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
         trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
         myztic.helpers.ErrorHandler.checkGLError();
 
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(24);
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
         vertices.fillFrom(0, 
             [
-                //vtx is position, color
+                //vtx is position, color, texcoord
                 0.5, 0.5, 0.0, 
                 1.0, 0.0, 0.0,
+                1.0, 0.0,
 
                 0.5, -0.5, 0.0,
                 0.0, 1.0, 0.0,
+                1.0, 1.0, 
 
                 -0.5, -0.5, 0.0,
                 0.0, 0.0, 1.0,
+                0.0, 1.0,
 
                 -0.5, 0.5, 0.0,
-                1.0, 0.0, 0.0
+                1.0, 0.0, 0.0,
+                0.0, 0.0
             ]
         );
         
@@ -113,14 +115,16 @@ class Main {
 
         //vao = VAO.make();
         ebo = EBO.make();
-        final vertexBuffer:VBO = VBO.make();
+        vbo = VBO.make();
 
         //vao.bindVertexArray();
 
-        vertexBuffer.bindVertexBuffer();
-        vertexBuffer.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
+        vbo.bindVertexBuffer();
+        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
 
-        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR]));
+        texture = Texture2D.fromFile("Yanni.png");
+
+        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR, ShaderInputLayout.TEXCOORD]));
         inputLayout.enableAllAttribs();
 
         ebo.bind();
@@ -145,18 +149,29 @@ class Main {
         fragShader.deleteShader();
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 
-        // GL.glViewport(0, 0, cast Display.getCurrentMonitor().width / 2, cast Display.getCurrentMonitor().height / 2); // Set Viewport for first time init
-
         SDL.stopTextInput();
+
+        cpp.vm.Gc.run(true);
         
         startAppLoop();
 
         //vao.deleteArrayObject();
+        VBO.unbindBuffer();
+        VAO.unbindGLVertexArray();
+        EBO.unbindBuffer();
+        Texture2D.unbindTexture();
+        GL.glUseProgram(0);
+        inputLayout.disableAllAttribs();
+
+        vbo.deleteBuffer();
+        ebo.deleteBuffer();
+        texture.deleteTexture();
         inputLayout.deleteInputLayout();
         shaderProgram.deleteProgram();
 
         // App Exit
         SDL.destroyWindow(window);
+        cpp.vm.Gc.run(true);
         SDL.quit();
 
         Sys.exit(0);
@@ -301,6 +316,7 @@ class Main {
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
         //vao.bindVertexArray();
+        texture.bindTexture();
         inputLayout.bindInputLayout();
 
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);

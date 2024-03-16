@@ -7,10 +7,10 @@
 --library linc_sdl
 --library linc_opengl
 --library hxcpp-debug
+--library format
 --debug
 
 -D HXCPP_M64
 -D MYZTIC_DEBUG_GL
-
 
 --cpp output

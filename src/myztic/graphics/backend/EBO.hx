@@ -39,6 +39,11 @@ class EBO{
         checkGLError();
     }
 
+    public static inline function unbindBuffer():Void {
+        OpenGL.glBindBuffer(OpenGL.GL_ELEMENT_ARRAY_BUFFER, 0);
+        checkGLError();
+    }
+
     public inline function changeElementBufferData(indices:StarArray<UInt32>):Void {
         #if MYZTIC_DEBUG_GL
         final currentBoundElementBuffer:cpp.Int32 = -55464;
