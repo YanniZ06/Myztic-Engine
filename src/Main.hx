@@ -1,5 +1,6 @@
 package;
 
+import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -35,6 +36,10 @@ import myztic.graphics.backend.Texture2D;
 import myztic.helpers.StarArray;
 import myztic.Application;
 import myztic.helpers.ErrorHandler.checkGLError;
+import myztic.display.DisplayHandler;
+import myztic.helpers.ErrorHandler;
+
+import myztic.display.Window as MyzWin;
 
 import cpp.Float32;
 
@@ -56,7 +61,7 @@ class Main {
 
     static var shouldClose:Bool = false;
     static var window:Window;
-    static var myzWin:myztic.display.Window;
+    static var myzWin:MyzWin;
 
     static var glc:sdl.GLContext;
 
@@ -70,9 +75,28 @@ class Main {
     static function main() {
         fps = 60;
 
+        // ! MOST RECENTLY CREATED WINDOW IS CURRENT GL WINDOW???? MAYBE THATS THE KICKER???
         Application.initMyztic(new InitScene());
         myzWin = Application.focusedWindow();
         window = myzWin.backend.handle;
+
+        final win2 = MyzWin.create({name: "Window Test 1", flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        final win3 = MyzWin.create({name: "Window Test 2", init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win2.backend.handle, myzWin.backend.glContext));
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win3.backend.handle, myzWin.backend.glContext));
+
+        trace(DisplayHandler.monitors);
+        trace(Application.windows);
+
+        inline function checkCurrentWindow() {
+            var cur = SDL.GL_GetCurrentWindow();
+            trace("MyzWin currently is: " + Application.windows[SDL.getWindowID(cur)]);
+        }
+        checkCurrentWindow();
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(myzWin.backend.handle, myzWin.backend.glContext));
+        checkCurrentWindow();
+
+        ///*
         
         var compiled = SDL.VERSION();
         var linked = SDL.getVersion();
@@ -215,7 +239,7 @@ class Main {
         }
     }
 
-    inline static function handleSDLEvents():Void {
+    #if !debug inline #end static function handleSDLEvents():Void {
         var continueEventSearch = SDL.hasAnEvent();
         while(continueEventSearch) {
             var e = SDL.pollEvent();
@@ -228,6 +252,8 @@ class Main {
                 case SDL_WINDOWEVENT: 
                 switch(e.window.event) {
                     case SDL_WINDOWEVENT_RESIZED:
+                        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(Application.windows[e.window.windowID].backend.handle, Application.windows[1].backend.glContext)); 
+                        // switched to window thats resized
                         GL.glViewport(0, 0, e.window.data1, e.window.data2);
                     default:
                 }
@@ -260,6 +286,10 @@ class Main {
                 switch(e.key.keysym.sym) {
                     case Keycodes.backspace:         
                         reqExit();
+                    case Keycodes.key_s:
+                        final randNum = Std.random(3) + 1;
+                        final randWin = Application.windows[randNum];
+                        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(randWin.backend.handle, Application.windows[1].backend.glContext));
                     default:
                 }
 
@@ -323,7 +353,7 @@ class Main {
 
         VAO.unbindGLVertexArray();
 
-        SDL.GL_SwapWindow(window);
+        SDL.GL_SwapWindow(SDL.GL_GetCurrentWindow());
     }
 
     static var red = 0.1;

@@ -44,8 +44,10 @@ class Application {
         // TODO: customizeability
         final win = Window.create({name: "Myztic Engine", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}, 
             DisplayHandler.monitors[0]);
-        windows[win.backend.id] = win;
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
         focusID = win.backend.id;
+
+        trace(win.monitor);
 
         //glContexts[0] = SDL.GL_CreateContext(windows[0]);
         final gladResult:Int = Glad.gladLoadGLLoader(untyped __cpp__('(GLADloadproc)SDL_GL_GetProcAddress'));
@@ -62,8 +64,8 @@ class Application {
             \nCheck if your drivers are installed properly and if your GPU supports GL 3.3.
             \nRegistered Version: $glV';
         
-        opengl.OpenGL.glViewport(0, 0, focusedWindow().width, focusedWindow().height); // Set Viewport for first time init
-        focusedWindow().switchScene(initialScene);
+        opengl.OpenGL.glViewport(0, 0, win.width, win.height); // Set Viewport for first time init
+        win.switchScene(initialScene);
         
         #if MYZTIC_DEBUG_GL
         trace("RUNNING ON OPENGL VERSION: " + glV);

@@ -11,6 +11,9 @@ class Monitor {
     public var index:Int;
     public var modes:Array<SDLDisplayMode> = [];
 
+    @:allow(myztic.display.Window)
+    private var monitorViewBounds:SDLRect;
+
     public function new(SDL_INDEX:Int) {
         index = SDL_INDEX;
 
@@ -19,6 +22,8 @@ class Monitor {
         width = curMode.w;
         height = curMode.h;
         refresh_rate = curMode.refresh_rate;
+
+        monitorViewBounds = SDL.getDisplayBounds(index, {x: 0, y: 0, w: 0, h: 0});
 
         /*
         var desktop_mode = SDL.getDesktopDisplayMode(index);
@@ -31,5 +36,9 @@ class Monitor {
             var mode = SDL.getDisplayMode(index, display_mode);
             trace('\t\t mode:$display_mode ${mode.w}x${mode.h} @ ${mode.refresh_rate}Hz format:${pixel_format_to_string(mode.format)}');
         }*/
+    }
+
+    private inline function toString():String {
+        return 'Monitor $index ["$name"]: ${width} x ${height} display at $refresh_rate Hz with view offset: $monitorViewBounds ';
     }
 }

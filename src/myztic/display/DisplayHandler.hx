@@ -10,8 +10,8 @@ import myztic.display.Window;
 class DisplayHandler {
     public static var monitors:Array<Monitor> = [];
 
-    //TODO: replace with  Application.focusedWindow().monitor (monitor should be changed when a SDL_WINDOWEVENT_DISPLAY_CHANGED is called in the loop)
-    public static inline function getCurrentMonitor():Monitor return monitors[SDL.getWindowDisplayIndex(Application.focusedWindow().backend.handle)];
+    //TODO: (monitor should be changed when a SDL_WINDOWEVENT_DISPLAY_CHANGED is called in the loop)
+    public static inline function getCurrentMonitor():Monitor return Application.focusedWindow().monitor;
 
     public static inline function refresh_AvailableMonitors():Void { // ? Rename this perhaps
         final monitorCnt = SDL.getNumVideoDisplays();

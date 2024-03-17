@@ -6,6 +6,7 @@ import sdl.SDL;
 import myztic.Scene;
 import myztic.helpers.ErrorHandler.checkSDLError;
 import myztic.display.DisplayHandler as Display;
+import myztic.display.Monitor;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.windowUtils.Fps;
 import myztic.display.backend.WinBackend;
@@ -47,6 +48,11 @@ class Window { // todo: make this more fleshed out
      * This windows' actively rendered Scene.
      */
     public var scene(default, null):Scene;
+
+    /**
+     * The monitor this window is being rendered on.
+     */
+    public var monitor(default, null):Monitor;
     
     private var _name:String;
     private var _x:Int;
@@ -69,23 +75,27 @@ class Window { // todo: make this more fleshed out
 
     public static function create(params:WindowParams, ?monitor:Monitor):Window { //todo: monitor shit using SDL_WINDOWPOS_CENTERED_DISPLAY
         var win = new Window(params.fps ?? Application.globalFps.max);
-        final winDisplay = monitor ?? Display.getCurrentMonitor() ?? Display.monitors[0];
+        win.monitor = monitor ?? Display.getCurrentMonitor() ?? Display.monitors[0];
 
-        final size = params.init_scale ?? [cast winDisplay.width / 2, cast winDisplay.height / 2];
-        final pos = params.init_pos ?? [cast (winDisplay.width - size[0]) / 2, cast (winDisplay.height - size[1]) / 2];
+        final size = params.init_scale ?? [cast win.monitor.width / 2, cast win.monitor.height / 2];
+        final pos = params.init_pos ?? [cast (win.monitor.width - size[0]) / 2, cast (win.monitor.height - size[1]) / 2];
         final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;
         
         win.backend.handle = SDL.createWindow(params.name, pos[0], pos[1], size[0], size[1], _flags);
-        @:privateAccess {
-            win._name = params.name;
-            win._x = pos[0]; win._y = pos[1];
-            win._width = size[0]; win._height = size[1];
-        }
+        //@:privateAccess {
+        win._name = params.name;
+        win._x = pos[0]; win._y = pos[1];
+        win._width = size[0]; win._height = size[1];
+
+        trace("created window: " + win.name);
+        //}
 
         win.backend.id = SDL.getWindowID(win.backend.handle);
         win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
-        checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
+        // checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
 
+        Application.windows[win.backend.id] = win;
+        trace(Application.windows);
         return win;
     }
 
@@ -105,6 +115,13 @@ class Window { // todo: make this more fleshed out
         name = null;
         fps = null;
     }
+
+    private inline function toString() {
+        return 'Window ${backend.id} ["$_name"]: $width x $height at position ($x | $y) running on ${fps.max} max fps';
+    }
+
+    private static inline final POS_CENTER_MASK:Int = 0x2FFF0000;
+    private static inline function CENTER_POS_DISPLAY(x:Int) return (POS_CENTER_MASK | x);
 
     inline function set_name(v:String):String {
         SDL.setWindowTitle(backend.handle, v);

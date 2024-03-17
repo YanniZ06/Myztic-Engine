@@ -111,7 +111,7 @@ class Texture2D
     }
 
     public inline function setTextureData( width:Int, height:Int, data:Bytes):Void{
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_BGRA, width, height, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, VoidPointer.fromBytes(data));
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, width, height, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, VoidPointer.fromBytes(data));
         GL.glGenerateMipmap(GL.GL_TEXTURE_2D);
         checkGLError();
     }
