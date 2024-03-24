@@ -4,6 +4,7 @@ import cpp.Float32;
 import myztic.helpers.ErrorHandler;
 import myztic.helpers.ErrorHandler.checkGLError;
 import opengl.StringPointer;
+import glm.Mat4;
 import opengl.OpenGL;
 import sys.io.File;
 
@@ -26,6 +27,9 @@ class Shader
 }
 
 //todo: Write a macro that generates functions for modifying uniforms
+@:cppInclude('glm.hpp')
+@:cppInclude('gtc/matrix_transform.hpp')
+@:cppInclude('gtc/type_ptr.hpp')
 class ShaderProgram 
 {
     public var handle:GLuint;
@@ -64,13 +68,23 @@ class ShaderProgram
         return uniformLocation;
     }
 
-    public function modifyUniformVector3(input:Array<Float32>, location:Int):Void {
+    public function uniformVector3(input:Array<Float32>, location:Int):Void {
         final currentBoundProgram:Int = 0;
         OpenGL.glGetIntegerv(OpenGL.GL_CURRENT_PROGRAM, currentBoundProgram.addressOf());
         checkGLError();
         if (currentBoundProgram != handle) trace("[[WARNING]]: CURRENT BOUND PROGRAM IS NOT THE SAME AS THE CLASS YOURE CALLING IT FROM, CURRENTLY BOUND: " + currentBoundProgram + " CLASS HANDLE: " + handle);
-        if (input.length > 4) {trace('MAX SIZE FOR MODIFYUNIFORMVECTOR IS 4');  return;}
+        if (input.length > 4) {trace('MAX SIZE FOR UNIFORMVECTOR IS 4');  return;}
         OpenGL.glUniform3f(location, input[0], input[1], input[2]);
+        checkGLError();
+    }
+
+    public function uniformMatrix4fv(/*input:Mat4, */location:Int):Void {
+        final currentBoundProgram:Int = 0;
+        OpenGL.glGetIntegerv(OpenGL.GL_CURRENT_PROGRAM, currentBoundProgram.addressOf());
+        checkGLError();
+        if (currentBoundProgram != handle) trace("[[WARNING]]: CURRENT BOUND PROGRAM IS NOT THE SAME AS THE CLASS YOURE CALLING IT FROM, CURRENTLY BOUND: " + currentBoundProgram + " CLASS HANDLE: " + handle);
+        //final x:Float32 = cast input.getColumnArray()[0].x;
+        OpenGL.glUniformMatrix4fv(location, 1, true, untyped __cpp__('glm::value_ptr(glm::mat4(1.0f))'));
         checkGLError();
     }
 }

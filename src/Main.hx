@@ -1,6 +1,5 @@
 package;
 
-import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -26,6 +25,10 @@ import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLintPointer;
 import glad.Glad;
+import glm.Mat4;
+import glm.GLM;
+import glm.Mat2;
+import glm.Vec3;
 
 import myztic.graphics.backend.VBO;
 import myztic.graphics.backend.VAO;
@@ -38,8 +41,8 @@ import myztic.Application;
 import myztic.helpers.ErrorHandler.checkGLError;
 import myztic.display.DisplayHandler;
 import myztic.helpers.ErrorHandler;
-
 import myztic.display.Window as MyzWin;
+import InitScene;
 
 import cpp.Float32;
 
@@ -47,6 +50,8 @@ using cpp.Native;
 
 // todo: BIG :: MOVE UPDATING AND FPS INTO APPLICATION!!!
 // future: use sprites ionstead of backend graphics
+@:buildXml('<include name="../builder.xml" />')
+@:cppInclude('glm.hpp')
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
     static var usedFps:Int = 0;
@@ -71,6 +76,7 @@ class Main {
     static var vbo:VBO;
     static var inputLayout:ShaderInputLayout;
     static var texture:Texture2D;
+    static var trans:Mat4;
 
     static function main() {
         fps = 60;
@@ -109,6 +115,11 @@ class Main {
         GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
         trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
         myztic.helpers.ErrorHandler.checkGLError();
+
+        //trans = new Mat4();
+        //trans = Mat4.identity(trans);
+        //trans = GLM.rotate(glm.Quat.axisAngle(new Vec3(0, 0, 1), 90, new glm.Quat()), trans);
+        //trans = GLM.scale(new Vec3(0.5, 0.5, 0.5), trans);
 
         var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
         vertices.fillFrom(0, 
@@ -168,7 +179,7 @@ class Main {
 
         shaderProgram.useProgram();
 
-        //shaderProgram.getUniformLocation("vertCol");
+        shaderProgram.getUniformLocation("transform");
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
@@ -348,12 +359,17 @@ class Main {
     }
 
     static function render():Void {
+        //enable alpha shit?
+        GL.glEnable(GL.GL_BLEND);
+        GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+
         GL.glClearColor(0, 0, 0.2, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         shaderProgram.useProgram();
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
+        shaderProgram.uniformMatrix4fv(/*trans,*/ shaderProgram.getUniformLocation("transform"));
         //vao.bindVertexArray();
         texture.bindTexture();
         inputLayout.bindInputLayout();
@@ -361,6 +377,8 @@ class Main {
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
 
         VAO.unbindGLVertexArray();
+
+        GL.glDisable(GL.GL_BLEND);
 
         SDL.GL_SwapWindow(SDL.GL_GetCurrentWindow());
     }

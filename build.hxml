@@ -8,6 +8,7 @@
 --library linc_opengl
 --library hxcpp-debug
 --library format
+--library glm
 --debug
 
 -D HXCPP_M64
