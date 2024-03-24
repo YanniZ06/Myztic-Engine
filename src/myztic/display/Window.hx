@@ -86,30 +86,38 @@ class Window { // todo: make this more fleshed out
         win._name = params.name;
         win._x = pos[0]; win._y = pos[1];
         win._width = size[0]; win._height = size[1];
-
-        trace("created window: " + win.name);
         //}
 
         win.backend.id = SDL.getWindowID(win.backend.handle);
         win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
         // checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
 
+        if(Application.nWindows != -1) win.switchSceneVirgin(params.init_scene); // Initial Window
+
         Application.windows[win.backend.id] = win;
-        trace(Application.windows);
+        Application.nWindows++;
+        
         return win;
     }
 
     // Todo: add rendering!
-    public function switchScene(input:Scene):Void {
+    public inline function switchScene(input:Scene):Void {
+        scene.unload(this);
+        scene = input;
+        scene.load(this);
+    }
+    @:allow(myztic.Application)
+    @:noCompletion inline function switchSceneVirgin(input:Scene) {
         scene = input;
         scene.load(this);
     }
 
     // Todo: Gradually add onto this
     public function destroy():Void {
+        scene.unload(this); // todo: figure out where this should go
         Application.windows.remove(backend.id);
+        Application.nWindows--;
         SDL.destroyWindow(backend.handle);
-        scene.unload(this);
         
         scene = null;
         name = null;

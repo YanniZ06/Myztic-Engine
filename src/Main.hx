@@ -75,13 +75,14 @@ class Main {
     static function main() {
         fps = 60;
 
-        // ! MOST RECENTLY CREATED WINDOW IS CURRENT GL WINDOW???? MAYBE THATS THE KICKER???
-        Application.initMyztic(new InitScene());
+        // ! MOST RECENTLY CREATED WINDOW IS CURRENT GL WINDOW???? MAYBE THATS THE KICKER??? it was :(
+        final iSc = new InitScene();
+        Application.initMyztic(iSc);
         myzWin = Application.focusedWindow();
         window = myzWin.backend.handle;
 
-        final win2 = MyzWin.create({name: "Window Test 1", flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
-        final win3 = MyzWin.create({name: "Window Test 2", init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        final win2 = MyzWin.create({name: "Window Test 1", init_scene: iSc, flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        final win3 = MyzWin.create({name: "Window Test 2", init_scene: iSc, init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win2.backend.handle, myzWin.backend.glContext));
         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win3.backend.handle, myzWin.backend.glContext));
 
@@ -247,6 +248,7 @@ class Main {
             switch(e.type) {
                 case SDL_QUIT: 
                     // If handleQuitReq returns true we are actually quitting, otherwise we're not!! Useful for "Save / Cancel" operations
+                    trace("quit req!");
                     continueEventSearch = !(shouldClose = handleQuitReq()) && SDL.hasAnEvent();
 
                 case SDL_WINDOWEVENT: 
@@ -255,6 +257,13 @@ class Main {
                         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(Application.windows[e.window.windowID].backend.handle, Application.windows[1].backend.glContext)); 
                         // switched to window thats resized
                         GL.glViewport(0, 0, e.window.data1, e.window.data2);
+                    
+                    case SDL_WINDOWEVENT_CLOSE: 
+                        if(Application.nWindows == 1) { // todo: window close events (generally window events lol), handle like quit ret?
+                            // window.onCloseReq(reason/context???)
+                            continue; // SDL_QUIT is automatically called right afterwards
+                        }
+                        Application.windows[e.window.windowID].destroy();
                     default:
                 }
                 case SDL_MOUSEBUTTONDOWN: // Mouse Click

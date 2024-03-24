@@ -2,6 +2,8 @@ package myztic.display;
 
 import sdl.SDL;
 
+typedef MonitorMode = SDLDisplayMode;
+
 class Monitor {
     public var name:String;
     public var width:Int;
@@ -9,7 +11,7 @@ class Monitor {
     public var refresh_rate:Int;
 
     public var index:Int;
-    public var modes:Array<SDLDisplayMode> = [];
+    public var modes:Array<MonitorMode> = [];
 
     @:allow(myztic.display.Window)
     private var monitorViewBounds:SDLRect;
@@ -22,7 +24,6 @@ class Monitor {
         width = curMode.w;
         height = curMode.h;
         refresh_rate = curMode.refresh_rate;
-
         monitorViewBounds = SDL.getDisplayBounds(index, {x: 0, y: 0, w: 0, h: 0});
 
         /*

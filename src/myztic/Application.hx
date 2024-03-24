@@ -21,6 +21,7 @@ class Application {
      * All windows bound to this application, mapped to their respective IDs (obtained via `window.backend.id`)
      */
     public static var windows:Map<Int, Window> = [];
+    public static var nWindows:Int = -1;
 
     private static var focusID:Int;
     
@@ -35,17 +36,19 @@ class Application {
         globalFps = new Fps(60);
         DisplayHandler.refresh_AvailableMonitors();
 
-        setGLAttrib( SDL_GL_RED_SIZE, 5 );
-        setGLAttrib( SDL_GL_GREEN_SIZE, 5 );
-        setGLAttrib( SDL_GL_BLUE_SIZE, 5 );
-        setGLAttrib( SDL_GL_DEPTH_SIZE, 16 );
-        setGLAttrib( SDL_GL_DOUBLEBUFFER, 1 );
+        final GL_ATTRIBS:Map<SDLGLAttr, Int> = [ SDL_GL_RED_SIZE => 5, SDL_GL_GREEN_SIZE => 5, SDL_GL_BLUE_SIZE => 5,
+            SDL_GL_DEPTH_SIZE => 16, SDL_GL_DOUBLEBUFFER => 1 ];
+        for(attr => val in GL_ATTRIBS) SDL.GL_SetAttribute(attr, val);
 
         // TODO: customizeability
-        final win = Window.create({name: "Myztic Engine", flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}, 
+        final win = Window.create({name: "Myztic Engine", init_scene: initialScene,
+         flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}, 
             DisplayHandler.monitors[0]);
+        win.switchSceneVirgin(initialScene);
+        
         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
         focusID = win.backend.id;
+        nWindows++; // Resolve -1 (Initial Window ID)
 
         trace(win.monitor);
 
