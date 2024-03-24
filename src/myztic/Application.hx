@@ -1,5 +1,8 @@
 package myztic;
 
+import myztic.display.windowUtils.WindowParams;
+
+
 import myztic.display.DisplayHandler;
 import myztic.display.windowUtils.Fps;
 import myztic.helpers.ErrorHandler;
@@ -41,21 +44,40 @@ class Application {
         for(attr => val in GL_ATTRIBS) SDL.GL_SetAttribute(attr, val);
 
         // TODO: customizeability
-        final win = Window.create({name: "Myztic Engine", init_scene: initialScene,
-         flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE}, 
-            DisplayHandler.monitors[0]);
-        win.switchSceneVirgin(initialScene);
+        var win:Window;
+        @:privateAccess {
+            final params:WindowParams = {name: "Myztic Engine", init_scene: initialScene,
+                flags: SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE};
+            final monitor = DisplayHandler.monitors[0];
+
+            win = new Window(params.fps ?? Application.globalFps.max);
+            win.monitor = monitor ?? DisplayHandler.getCurrentMonitor() ?? DisplayHandler.monitors[0];
+
+            //todo: monitor shit using SDL_WINDOWPOS_CENTERED_DISPLAY
+            final size = params.init_scale ?? [cast win.monitor.width / 2, cast win.monitor.height / 2];
+            final pos = params.init_pos ?? [cast (win.monitor.width - size[0]) / 2, cast (win.monitor.height - size[1]) / 2];
+            final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;
+            
+            win.backend.handle = SDL.createWindow(params.name, pos[0], pos[1], size[0], size[1], _flags);
+            win._name = params.name;
+            win._x = pos[0]; win._y = pos[1];
+            win._width = size[0]; win._height = size[1];
+
+            win.backend.id = SDL.getWindowID(win.backend.handle);
+            win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
+            windows[win.backend.id] = win;
+        }
         
         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
         focusID = win.backend.id;
-        nWindows++; // Resolve -1 (Initial Window ID)
+        nWindows = 1; // Resolve -1 (Initial Window ID)
 
         trace(win.monitor);
 
         //glContexts[0] = SDL.GL_CreateContext(windows[0]);
         final gladResult:Int = Glad.gladLoadGLLoader(untyped __cpp__('(GLADloadproc)SDL_GL_GetProcAddress'));
         if (gladResult == 0)
-            throw 'Failed to initialize GLAD! Most likely outdated OpenGL Version, Required: OpenGL 3.3, ERROR CODE: $gladResult';
+            throw 'Failed to initialize GLAD! Most likely outdated OpenGL Version, Required: OpenGL 3.3, ERROR CODE: $gladResult'; // What?
         
         var glV:String;
         try { glV = OpenGL.getString(OpenGL.GL_VERSION); }
@@ -68,7 +90,7 @@ class Application {
             \nRegistered Version: $glV';
         
         opengl.OpenGL.glViewport(0, 0, win.width, win.height); // Set Viewport for first time init
-        win.switchScene(initialScene);
+        win.switchSceneVirgin(initialScene);
         
         #if MYZTIC_DEBUG_GL
         trace("RUNNING ON OPENGL VERSION: " + glV);

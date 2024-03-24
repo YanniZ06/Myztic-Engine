@@ -75,7 +75,6 @@ class Main {
     static function main() {
         fps = 60;
 
-        // ! MOST RECENTLY CREATED WINDOW IS CURRENT GL WINDOW???? MAYBE THATS THE KICKER??? it was :(
         final iSc = new InitScene();
         Application.initMyztic(iSc);
         myzWin = Application.focusedWindow();
@@ -83,8 +82,6 @@ class Main {
 
         final win2 = MyzWin.create({name: "Window Test 1", init_scene: iSc, flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
         final win3 = MyzWin.create({name: "Window Test 2", init_scene: iSc, init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win2.backend.handle, myzWin.backend.glContext));
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win3.backend.handle, myzWin.backend.glContext));
 
         trace(DisplayHandler.monitors);
         trace(Application.windows);
@@ -93,8 +90,6 @@ class Main {
             var cur = SDL.GL_GetCurrentWindow();
             trace("MyzWin currently is: " + Application.windows[SDL.getWindowID(cur)]);
         }
-        checkCurrentWindow();
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(myzWin.backend.handle, myzWin.backend.glContext));
         checkCurrentWindow();
 
         ///*
@@ -145,7 +140,7 @@ class Main {
         //vao.bindVertexArray();
 
         vbo.bindVertexBuffer();
-        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
+        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW);
 
         texture = Texture2D.fromFile("Yanni.png");
 

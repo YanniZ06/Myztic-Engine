@@ -1,5 +1,7 @@
 package myztic.display;
 
+import myztic.Application;
+
 import sdl.GLContext;
 import sdl.SDL;
 
@@ -10,6 +12,7 @@ import myztic.display.Monitor;
 import myztic.display.windowUtils.WindowParams;
 import myztic.display.windowUtils.Fps;
 import myztic.display.backend.WinBackend;
+import myztic.graphics.Renderer;
 
 class Window { // todo: make this more fleshed out
     /**
@@ -50,6 +53,11 @@ class Window { // todo: make this more fleshed out
     public var scene(default, null):Scene;
 
     /**
+     * This windows' renderer object.
+     */
+    public var renderer(default, null):Renderer;
+
+    /**
      * The monitor this window is being rendered on.
      */
     public var monitor(default, null):Monitor;
@@ -62,6 +70,8 @@ class Window { // todo: make this more fleshed out
 
     private function new(fps:Int) {
         backend = new WinBackend(this);
+        renderer = new Renderer(this);
+
         this.fps = new Fps(fps);
     }
 
@@ -73,29 +83,39 @@ class Window { // todo: make this more fleshed out
     (((X)&0xFFFF0000) == SDL_WINDOWPOS_CENTERED_MASK)
     */
 
-    public static function create(params:WindowParams, ?monitor:Monitor):Window { //todo: monitor shit using SDL_WINDOWPOS_CENTERED_DISPLAY
+    /**
+     * Creates a new Window from the given parameters.
+     * 
+     * Note: The initial window created by the application is NOT created using this function, shadowing it will do nothing!
+     * @param params The window parameters.
+     * @param monitor Optional argument for the monitor this window should be rendered on, by default gets the first monitor.
+     */
+    public static function create(params:WindowParams, ?monitor:Monitor):Window {
+        final oldContext = SDL.GL_GetCurrentContext();
+        final oldWindow = SDL.GL_GetCurrentWindow();
+
         var win = new Window(params.fps ?? Application.globalFps.max);
         win.monitor = monitor ?? Display.getCurrentMonitor() ?? Display.monitors[0];
 
+        //todo: monitor shit using SDL_WINDOWPOS_CENTERED_DISPLAY
         final size = params.init_scale ?? [cast win.monitor.width / 2, cast win.monitor.height / 2];
         final pos = params.init_pos ?? [cast (win.monitor.width - size[0]) / 2, cast (win.monitor.height - size[1]) / 2];
         final _flags:Int = (params.flags ?? 0) | SDL_WINDOW_OPENGL;
         
         win.backend.handle = SDL.createWindow(params.name, pos[0], pos[1], size[0], size[1], _flags);
-        //@:privateAccess {
         win._name = params.name;
         win._x = pos[0]; win._y = pos[1];
         win._width = size[0]; win._height = size[1];
-        //}
 
         win.backend.id = SDL.getWindowID(win.backend.handle);
         win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
-        // checkSDLError(SDL.GL_MakeCurrent(win.backend.handle, win.backend.glContext));
 
-        if(Application.nWindows != -1) win.switchSceneVirgin(params.init_scene); // Initial Window
+        win.switchSceneVirgin(params.init_scene);
 
         Application.windows[win.backend.id] = win;
         Application.nWindows++;
+
+        if(oldWindow != null) SDL.GL_MakeCurrent(oldWindow, oldContext); // Set back to old context
         
         return win;
     }
@@ -106,6 +126,7 @@ class Window { // todo: make this more fleshed out
         scene = input;
         scene.load(this);
     }
+
     @:allow(myztic.Application)
     @:noCompletion inline function switchSceneVirgin(input:Scene) {
         scene = input;
