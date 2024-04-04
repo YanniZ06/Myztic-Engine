@@ -32,7 +32,7 @@ class Application {
         return windows[focusID];
     
     // todo: file for initial window and app settings on startup (like window position and size, name, and other funky things)
-    public static function initMyztic(initialScene:Scene):Void{
+    public static function initMyztic(initialScene:Scene):Void {
         if(SDL.init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
             throw 'Error initializing SDL subsystems: ${SDL.getError()}';
         }
@@ -84,13 +84,14 @@ class Application {
         catch(e) { throw 'Could not automatically get current OpenGL version. Please check manually. (GL 3.3 is required) [ERROR::$e]'; }
 
         //i am actually so sorry
-        if((Glad.glVersion.major == 3 && Glad.glVersion.minor != 3) || (Glad.glVersion.major != 4)) 
+        if((Glad.glVersion.major == 3 && Glad.glVersion.minor != 3) || (Glad.glVersion.major != 4)) {
             throw 'OpenGL version 3.3 is not supported on this device.
             \nCheck if your drivers are installed properly and if your GPU supports GL 3.3.
             \nRegistered Version: $glV';
+        }
         
         opengl.OpenGL.glViewport(0, 0, win.width, win.height); // Set Viewport for first time init
-        win.switchSceneVirgin(initialScene);
+        win.loadFirstScene(initialScene);
         
         #if MYZTIC_DEBUG_GL
         trace("RUNNING ON OPENGL VERSION: " + glV);

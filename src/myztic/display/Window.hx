@@ -110,7 +110,7 @@ class Window { // todo: make this more fleshed out
         win.backend.id = SDL.getWindowID(win.backend.handle);
         win.backend.glContext = SDL.GL_CreateContext(win.backend.handle);
 
-        win.switchSceneVirgin(params.init_scene);
+        win.loadFirstScene(params.init_scene);
 
         Application.windows[win.backend.id] = win;
         Application.nWindows++;
@@ -128,7 +128,7 @@ class Window { // todo: make this more fleshed out
     }
 
     @:allow(myztic.Application)
-    @:noCompletion inline function switchSceneVirgin(input:Scene) {
+    @:noCompletion inline function loadFirstScene(input:Scene) {
         scene = input;
         scene.load(this);
     }

@@ -27,6 +27,8 @@ class Renderer {
     // todo: this should contain everything the renderer needs to "bind" or "enable" to render what has been tasked to render and prepared by "execute"!!
     public var toBind:Array<Dynamic> = []; 
 
+    // public var mode:RenderMode :: -> This should be like the polygon lines, full draw or points and front and back face option shit
+
     /**
      * When called, the renderer executes all of its queued tasks.
      * To display the rendered graphics, call "displayRender".
