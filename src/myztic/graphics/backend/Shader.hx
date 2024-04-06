@@ -27,10 +27,7 @@ class Shader
 }
 
 //todo: Write a macro that generates functions for modifying uniforms
-/*@:cppInclude('glm.hpp')
-@:cppInclude('gtc/matrix_transform.hpp')
-@:cppInclude('gtc/type_ptr.hpp')*/
-class ShaderProgram 
+class ShaderProgram implements Bindable<Shader, Int, Int>
 {
     public var handle:GLuint;
     public var uniforms:Map<String, Int> = [];
@@ -44,17 +41,22 @@ class ShaderProgram
         checkGLError();
     }
 
-    public inline function attachShader(shader:Shader):Void {
+    public inline function fill(?shader:Shader, ?_r1:Int, ?_r2:Int):Void {
         OpenGL.glAttachShader(handle, shader.handle);
         checkGLError();
     }
 
-    public inline function useProgram():Void {
+    public inline function bind():Void {
         OpenGL.glUseProgram(handle);
         checkGLError();
     }
 
-    public inline function deleteProgram():Void {
+    public inline function unbind():Void {
+        OpenGL.glUseProgram(0);
+        checkGLError();
+    }
+
+    public inline function delete():Void {
         OpenGL.glDeleteProgram(handle);
         checkGLError();
     }

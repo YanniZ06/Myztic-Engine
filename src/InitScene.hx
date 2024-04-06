@@ -30,13 +30,14 @@ import glm.Mat4;
 import glm.Vec3;
 
 import myztic.graphics.backend.VBO;
-import myztic.graphics.backend.VAO;
 import myztic.graphics.backend.EBO;
 import myztic.graphics.backend.Shader;
 import myztic.graphics.backend.ShaderInputLayout;
 import myztic.graphics.backend.Texture2D;
 import myztic.helpers.StarArray;
 import myztic.Application;
+import myztic.display.Window;
+import myztic.Scene;
 import myztic.helpers.ErrorHandler.checkGLError;
 import myztic.display.DisplayHandler;
 import myztic.helpers.ErrorHandler;
@@ -45,9 +46,6 @@ import myztic.util.Math.radians;
 import cpp.Float32;
 
 using cpp.Native;
-
-import myztic.display.Window;
-import myztic.Scene;
 
 // Testing-scene, soon to be used
 class DummyScene extends Scene {
@@ -60,7 +58,6 @@ class InitScene extends Scene {
     public var glc:sdl.GLContext;
 
     public var shaderProgram:ShaderProgram;
-    //public var vao:VAO;
     public var ebo:EBO;
     public var vbo:VBO;
     public var inputLayout:ShaderInputLayout;
@@ -69,6 +66,19 @@ class InitScene extends Scene {
     public var world:Mat4;
     public var view:Mat4;
     public var projection:Mat4;
+
+    public var cameraPosition(default, set):Vec3 = new Vec3(0, 0, -10);
+
+    private inline function viewMatrixUpdate(vec3:Vec3):Void {
+        myztic.util.Math.makeMatrixIdentity(view);
+        view = GLM.translate(view, vec3);
+    }
+
+    public function set_cameraPosition(n:Vec3):Vec3 {
+        viewMatrixUpdate(n);
+
+        return cameraPosition = n;
+    }
 
     override function load(win:Window) {
         super.load(win);
@@ -90,7 +100,9 @@ class InitScene extends Scene {
         }
         checkCurrentWindow();
 
-        ///*
+        cameraPosition.xSet = () -> {viewMatrixUpdate(cameraPosition);};
+        cameraPosition.ySet = () -> {viewMatrixUpdate(cameraPosition);};
+        cameraPosition.zSet = () -> {viewMatrixUpdate(cameraPosition);};
         
         var compiled = SDL.VERSION();
         var linked = SDL.getVersion();
@@ -103,25 +115,35 @@ class InitScene extends Scene {
         trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
         myztic.helpers.ErrorHandler.checkGLError();
 
+        //setting up camera, model position and the projection
+        world = new Mat4();
+        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
+        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
+
+        view = new Mat4();
+        view = GLM.translate(view, cameraPosition);
+
+        //projection should be remade everytime window resolution changes
+        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
+
         setupGraphics();
     }
 
     override function unload(callerWindow:Window) {
         super.unload(callerWindow);
         
-        //vao.deleteArrayObject();
-        VBO.unbindBuffer();
-        VAO.unbindGLVertexArray();
-        EBO.unbindBuffer();
-        Texture2D.unbindTexture();
+        vbo.unbind();
+        GL.glBindVertexArray(0);
+        ebo.unbind();
+        texture.unbind();
         GL.glUseProgram(0);
         inputLayout.disableAllAttribs();
 
-        vbo.deleteBuffer();
-        ebo.deleteBuffer();
-        texture.deleteTexture();
+        vbo.delete();
+        ebo.delete();
+        texture.delete();
         inputLayout.deleteInputLayout();
-        shaderProgram.deleteProgram();        
+        shaderProgram.delete();        
     }
 
     public function render():Void {
@@ -132,19 +154,20 @@ class InitScene extends Scene {
         GL.glClearColor(0, 0, 0.2, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
-        shaderProgram.useProgram();
+        shaderProgram.bind();
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
         shaderProgram.uniformMatrix4fv(world, shaderProgram.getUniformLocation("world"));
         shaderProgram.uniformMatrix4fv(view, shaderProgram.getUniformLocation("camView"));
         shaderProgram.uniformMatrix4fv(projection, shaderProgram.getUniformLocation("projection"));
-        //vao.bindVertexArray();
-        texture.bindTexture();
+        texture.bind();
         inputLayout.bindInputLayout();
+
+        cameraPosition.z -= 0.01;
 
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
 
-        VAO.unbindGLVertexArray();
+        GL.glBindVertexArray(0);
 
         GL.glDisable(GL.GL_BLEND);
 
@@ -152,16 +175,6 @@ class InitScene extends Scene {
     }
 
     inline function setupGraphics() {
-        world = new Mat4();
-        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
-        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
-
-        view = new Mat4();
-        view = GLM.translate(view, new Vec3(0, 0, -10));
-
-        projection = new Mat4();
-        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
-
         var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
         vertices.fillFrom(0, 
             [
@@ -190,34 +203,31 @@ class InitScene extends Scene {
         indices.fillFrom(0, [0, 1, 3, 1, 2, 3]);
         indices.data_index = 0;
 
-        //vao = VAO.make();
         ebo = EBO.make();
         vbo = VBO.make();
 
-        //vao.bindVertexArray();
-
-        vbo.bindVertexBuffer();
-        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW);
+        vbo.bind();
+        vbo.fill(vertices, GL.GL_STATIC_DRAW);
         texture = Texture2D.fromFile("Yanni.png");
 
         inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR, ShaderInputLayout.TEXCOORD]));
         inputLayout.enableAllAttribs();
 
         ebo.bind();
-        ebo.changeElementBufferData(indices);
+        ebo.fill(indices);
 
-        VBO.unbindBuffer();
+        vbo.unbind();
 
         var vertexShader:Shader = new Shader(GL.GL_VERTEX_SHADER, "VS.glsl");
         var fragShader:Shader = new Shader(GL.GL_FRAGMENT_SHADER, "FS.glsl");
 
         shaderProgram = new ShaderProgram();
-        shaderProgram.attachShader(vertexShader);
-        shaderProgram.attachShader(fragShader);
+        shaderProgram.fill(vertexShader);
+        shaderProgram.fill(fragShader);
 
         shaderProgram.link();
 
-        shaderProgram.useProgram();
+        shaderProgram.bind();
 
         shaderProgram.getUniformLocation("world");
         shaderProgram.getUniformLocation("camView");

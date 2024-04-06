@@ -55,15 +55,15 @@ class ShaderInputLayout
         attachedVAO = VAO.make();
 
     public inline function bindInputLayout():Void 
-        attachedVAO.bindVertexArray();
+        attachedVAO.bind();
 
     public static inline function unbindAllInputLayouts():Void {
-        VAO.unbindGLVertexArray();
+        GL.glBindVertexArray(0);
         checkGLError();
     }
 
     public function deleteInputLayout():Void {
-        attachedVAO.deleteArrayObject();
+        attachedVAO.delete();
         checkGLError();
         description = null;
         propertyCount = 0;

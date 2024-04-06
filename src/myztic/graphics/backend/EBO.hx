@@ -7,7 +7,7 @@ import myztic.helpers.ErrorHandler.checkGLError;
 
 using cpp.Native;
 
-class EBO{
+class EBO implements Bindable<StarArray<UInt32>, Int, Int> {
     public var handle:GLuint;
 
     public function new(handle:GLuint) {
@@ -39,12 +39,12 @@ class EBO{
         checkGLError();
     }
 
-    public static inline function unbindBuffer():Void {
+    public inline function unbind():Void {
         OpenGL.glBindBuffer(OpenGL.GL_ELEMENT_ARRAY_BUFFER, 0);
         checkGLError();
     }
 
-    public inline function changeElementBufferData(indices:StarArray<UInt32>):Void {
+    public inline function fill(?indices:StarArray<UInt32>, ?r1:Int, ?r2:Int):Void {
         #if MYZTIC_DEBUG_GL
         final currentBoundElementBuffer:cpp.Int32 = -55464;
         OpenGL.glGetIntegerv(OpenGL.GL_ELEMENT_ARRAY_BUFFER_BINDING, currentBoundElementBuffer.addressOf());
@@ -58,7 +58,7 @@ class EBO{
         checkGLError();
     }
 
-    public inline function deleteBuffer():Void {
+    public inline function delete():Void {
         final int:Int = -99;
         OpenGL.glGetIntegerv(OpenGL.GL_ELEMENT_ARRAY_BUFFER_BINDING, int.addressOf());
         checkGLError();

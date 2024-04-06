@@ -138,6 +138,7 @@ class Main {
                     case SDL_WINDOWEVENT_RESIZED:
                         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(Application.windows[e.window.windowID].backend.handle, Application.windows[1].backend.glContext)); 
                         // switched to window thats resized
+                        initScene.projection = glm.GLM.perspective(90, e.window.data1/e.window.data2, 0.1, 100.0);
                         GL.glViewport(0, 0, e.window.data1, e.window.data2);
                     
                     case SDL_WINDOWEVENT_CLOSE: 

@@ -3,13 +3,14 @@ package myztic.graphics.backend;
 import opengl.OpenGL;
 import myztic.helpers.StarArray;
 import myztic.helpers.ErrorHandler.checkGLError;
+import myztic.graphics.Bindable;
 
 import cpp.Pointer;
 import cpp.Star;
 
 using cpp.Native;
 
-class VAO{
+class VAO implements Bindable<Int, Int, Int> {
     public var handle:GLuint;
 
     public function new(handle:GLuint) {
@@ -26,15 +27,18 @@ class VAO{
         return vao;
     }
 
-    public inline function bindVertexArray():Void {
+    public inline function bind():Void {
         OpenGL.glBindVertexArray(handle);
         checkGLError();
     }
 
-    public static inline function unbindGLVertexArray():Void {
+    public inline function unbind():Void {
         OpenGL.glBindVertexArray(0);
         checkGLError();
     }
+
+    //DO NOT USE, EMPTY FUNCTION I HATE HAXE FOR THIS
+    public inline function fill(?_r1:Int, ?_r2:Int, ?_r3:Int):Void {}
 
     public inline static function makeArr(n:Int):Array<VAO> {
         var ptr:StarArray<GLuint> = new StarArray<GLuint>(n);
@@ -44,7 +48,7 @@ class VAO{
         return [for(n_vao in 0...n) new VAO(ptr.get(n_vao))];
     }
 
-    public inline function deleteArrayObject():Void {
+    public inline function delete():Void {
         final int:Int = -99;
         OpenGL.glGetIntegerv(OpenGL.GL_VERTEX_ARRAY_BINDING, int.addressOf());
         checkGLError();

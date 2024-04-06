@@ -1,8 +1,8 @@
 package myztic.graphics.backend;
 
-
-
 import myztic.helpers.ErrorHandler.checkGLError;
+import myztic.graphics.Bindable;
+
 import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLuint;
@@ -16,8 +16,9 @@ import cpp.UInt32;
 
 using cpp.Native;
 
-class VBO {
+class VBO implements Bindable<StarArray<GLfloat>, Int, Int> {
     public var handle:GLuint;
+
     function new(buf:GLuint) {
         handle = buf;
     }
@@ -31,7 +32,7 @@ class VBO {
         return ret;
     }
 
-    public inline function changeVertexBufferData(vertices:StarArray<GLfloat>, drawType:Int):Void {
+    public function fill(?vertices:StarArray<GLfloat>, ?fillType:Int, ?reserve_:Int):Void {
         #if MYZTIC_DEBUG_GL
         final currentBoundVertexBuffer:cpp.Int32 = -55464;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, currentBoundVertexBuffer.addressOf());
@@ -41,16 +42,16 @@ class VBO {
         else if(currentBoundVertexBuffer != handle) trace('[[WARNING]]: Trying to modify data of vbo: $currentBoundVertexBuffer from the unbound buffer $handle');
         #end
 
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, cast vertices.data, drawType);
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, GLfloat.sizeof() * vertices.length, cast vertices.data, fillType);
         checkGLError();
     }
 
-    public inline function bindVertexBuffer():Void {
+    public inline function bind():Void {
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, handle);
         checkGLError();
     }
 
-    public static inline function unbindBuffer():Void {
+    public inline function unbind():Void {
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         checkGLError();
     }
@@ -63,7 +64,7 @@ class VBO {
         return [for(n_vbo in 0...n) new VBO(ptr.get(n_vbo))];
     }
 
-    public inline function deleteBuffer():Void {
+    public inline function delete():Void {
         final int:Int = -99;
         GL.glGetIntegerv(GL.GL_ARRAY_BUFFER_BINDING, int.addressOf());
         checkGLError();

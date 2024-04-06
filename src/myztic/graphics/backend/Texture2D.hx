@@ -1,21 +1,23 @@
 package myztic.graphics.backend;
 
 import haxe.io.Bytes;
-import opengl.VoidPointer;
-import opengl.OpenGL.GLuint;
-import opengl.OpenGL as GL;
-import myztic.helpers.ErrorHandler.checkGLError;
-
-import format.png.*;
-import sys.io.File;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 
+import opengl.VoidPointer;
+import opengl.OpenGL.GLuint;
+import opengl.OpenGL as GL;
+
+import format.png.*;
+import sys.io.File;
+
 import myztic.helpers.StarArray;
+import myztic.graphics.Bindable;
+import myztic.helpers.ErrorHandler.checkGLError;
 
 using cpp.Native;
 
-class Texture2D
+class Texture2D implements Bindable<Int, Int, Bytes>
 {
     public var handle:GLuint;
 
@@ -53,9 +55,9 @@ class Texture2D
         cpp.vm.Gc.run(true);
 
         final ret:Texture2D = Texture2D.make();
-        ret.bindTexture();
+        ret.bind();
         ret.configureTexture();
-        ret.setTextureData(width, height, imageBytes);
+        ret.fill(width, height, imageBytes);
         //clear bytes
         imageBytes.fill(0, imageBytes.length, 0);
         imageBytes = null;
@@ -81,17 +83,17 @@ class Texture2D
         return [for(n_texture in 0...n) new Texture2D(ptr.get(n_texture))];
     }
 
-    public inline function bindTexture():Void {
+    public inline function bind():Void {
         GL.glBindTexture(GL.GL_TEXTURE_2D, handle);
         checkGLError();
     }
 
-    public static inline function unbindTexture():Void {
+    public inline function unbind():Void {
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0);
         checkGLError();
     }
 
-    public inline function deleteTexture():Void {
+    public inline function delete():Void {
         GL.glDeleteTextures(1, handle.addressOf());
         checkGLError();
     }
@@ -110,7 +112,7 @@ class Texture2D
         checkGLError();
     }
 
-    public inline function setTextureData( width:Int, height:Int, data:Bytes):Void{
+    public inline function fill(?width:Int, ?height:Int, ?data:Bytes):Void{
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, width, height, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, VoidPointer.fromBytes(data));
         GL.glGenerateMipmap(GL.GL_TEXTURE_2D);
         checkGLError();
