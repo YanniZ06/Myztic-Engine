@@ -25,9 +25,8 @@ import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLintPointer;
 import glad.Glad;
-import glm.Mat4;
 import glm.GLM;
-import glm.Mat2;
+import glm.Mat4;
 import glm.Vec3;
 
 import myztic.graphics.backend.VBO;
@@ -42,6 +41,7 @@ import myztic.helpers.ErrorHandler.checkGLError;
 import myztic.display.DisplayHandler;
 import myztic.helpers.ErrorHandler;
 import myztic.display.Window as MyzWin;
+import myztic.util.Math.radians;
 import InitScene;
 
 import cpp.Float32;
@@ -50,8 +50,6 @@ using cpp.Native;
 
 // todo: BIG :: MOVE UPDATING AND FPS INTO APPLICATION!!!
 // future: use sprites ionstead of backend graphics
-@:buildXml('<include name="../builder.xml" />')
-@:cppInclude('glm.hpp')
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
     static var usedFps:Int = 0;
@@ -76,7 +74,10 @@ class Main {
     static var vbo:VBO;
     static var inputLayout:ShaderInputLayout;
     static var texture:Texture2D;
-    static var trans:Mat4;
+    static var world:Mat4;
+    static var view:Mat4;
+    static var projection:Mat4;
+    
 
     static function main() {
         fps = 60;
@@ -116,10 +117,15 @@ class Main {
         trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
         myztic.helpers.ErrorHandler.checkGLError();
 
-        //trans = new Mat4();
-        //trans = Mat4.identity(trans);
-        //trans = GLM.rotate(glm.Quat.axisAngle(new Vec3(0, 0, 1), 90, new glm.Quat()), trans);
-        //trans = GLM.scale(new Vec3(0.5, 0.5, 0.5), trans);
+        world = new Mat4();
+        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
+        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
+
+        view = new Mat4();
+        view = GLM.translate(view, new Vec3(0, 0, -10));
+
+        projection = new Mat4();
+        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
 
         var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
         vertices.fillFrom(0, 
@@ -179,7 +185,9 @@ class Main {
 
         shaderProgram.useProgram();
 
-        shaderProgram.getUniformLocation("transform");
+        shaderProgram.getUniformLocation("world");
+        shaderProgram.getUniformLocation("camView");
+        shaderProgram.getUniformLocation("projection");
 
         vertexShader.deleteShader();
         fragShader.deleteShader();
@@ -369,7 +377,9 @@ class Main {
         shaderProgram.useProgram();
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
-        shaderProgram.uniformMatrix4fv(/*trans,*/ shaderProgram.getUniformLocation("transform"));
+        shaderProgram.uniformMatrix4fv(world, shaderProgram.getUniformLocation("world"));
+        shaderProgram.uniformMatrix4fv(view, shaderProgram.getUniformLocation("camView"));
+        shaderProgram.uniformMatrix4fv(projection, shaderProgram.getUniformLocation("projection"));
         //vao.bindVertexArray();
         texture.bindTexture();
         inputLayout.bindInputLayout();

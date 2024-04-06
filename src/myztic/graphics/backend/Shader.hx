@@ -4,9 +4,9 @@ import cpp.Float32;
 import myztic.helpers.ErrorHandler;
 import myztic.helpers.ErrorHandler.checkGLError;
 import opengl.StringPointer;
-import glm.Mat4;
 import opengl.OpenGL;
 import sys.io.File;
+import glm.Mat4;
 
 using cpp.Native;
 
@@ -27,9 +27,9 @@ class Shader
 }
 
 //todo: Write a macro that generates functions for modifying uniforms
-@:cppInclude('glm.hpp')
+/*@:cppInclude('glm.hpp')
 @:cppInclude('gtc/matrix_transform.hpp')
-@:cppInclude('gtc/type_ptr.hpp')
+@:cppInclude('gtc/type_ptr.hpp')*/
 class ShaderProgram 
 {
     public var handle:GLuint;
@@ -78,13 +78,12 @@ class ShaderProgram
         checkGLError();
     }
 
-    public function uniformMatrix4fv(/*input:Mat4, */location:Int):Void {
+    public function uniformMatrix4fv(input:Mat4, location:Int):Void {
         final currentBoundProgram:Int = 0;
         OpenGL.glGetIntegerv(OpenGL.GL_CURRENT_PROGRAM, currentBoundProgram.addressOf());
         checkGLError();
         if (currentBoundProgram != handle) trace("[[WARNING]]: CURRENT BOUND PROGRAM IS NOT THE SAME AS THE CLASS YOURE CALLING IT FROM, CURRENTLY BOUND: " + currentBoundProgram + " CLASS HANDLE: " + handle);
-        //final x:Float32 = cast input.getColumnArray()[0].x;
-        OpenGL.glUniformMatrix4fv(location, 1, true, untyped __cpp__('glm::value_ptr(glm::mat4(1.0f))'));
+        OpenGL.glUniformMatrix4fv(location, 1, true, input.valPtr());
         checkGLError();
     }
 }
