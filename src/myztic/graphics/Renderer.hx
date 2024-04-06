@@ -68,11 +68,9 @@ class Renderer {
             case RenderTriCollection(clc):
 
             case SwitchRenderMode(mode):
-                var face:Int = -1;
-                var mode:Int = -1;
-                getPolyModeFromEnum(mode, cpp.Native.addressOf(face), cpp.Native.addressOf(mode));
+                final polymodeVals = getPolyModeFromEnum(mode);
 
-                OpenGL.glPolygonMode(face, mode);
+                OpenGL.glPolygonMode(polymodeVals[0], polymodeVals[1]);
         }
     }
 
@@ -88,6 +86,7 @@ class Renderer {
     // Render Mode
     inline function set_mode(m:RenderMode) {
         tasks.push(SwitchRenderMode(m));
+        return mode = m;
     }
 
     inline function getGLface(f:Bool, b:Bool):Int {
@@ -95,24 +94,15 @@ class Renderer {
             case [true, false]: OpenGL.GL_FRONT;
             case [false, true]: OpenGL.GL_BACK;
             case [true, true]: OpenGL.GL_FRONT_AND_BACK;
+            case _: OpenGL.GL_FRONT_AND_BACK;
         }
     }
 
-    // I dont wanna return an array for this so im using pointers, c++ style
-    inline function getPolyModeFromEnum(mode:RenderMode, inFace:cpp.Star<cpp.UInt32>, inMode:cpp.Star<cpp.UInt32>) {
-        switch(mode) {
-            case VertexCoords(front, back):
-                untyped __cpp__('
-                    *{0} = {1};
-                    *{2} = {3}', inFace, getGLface(front, back), inMode, OpenGL.GL_POINT);
-            case PolygonOutlines(front, back):
-                untyped __cpp__('
-                    *{0} = {1};
-                    *{2} = {3}', inFace, getGLface(front, back), inMode, OpenGL.GL_LINE);
-            case Filled(front, back):
-                untyped __cpp__('
-                    *{0} = {1};
-                    *{2} = {3}', inFace, getGLface(front, back), inMode, OpenGL.GL_FILL);
+    inline function getPolyModeFromEnum(mode:RenderMode):Array<Int> {
+        return switch(mode) {
+            case VertexCoords(front, back): [getGLface(front, back), OpenGL.GL_POINT];
+            case PolygonOutlines(front, back): [getGLface(front, back), OpenGL.GL_LINE];
+            case Filled(front, back): [getGLface(front, back), OpenGL.GL_FILL];
         }
     }
 }

@@ -63,134 +63,13 @@ class Main {
     static var accumulator:Float;
 
     static var shouldClose:Bool = false;
-    static var window:Window;
-    static var myzWin:MyzWin;
 
-    static var glc:sdl.GLContext;
-
-    static var shaderProgram:ShaderProgram;
-    //static var vao:VAO;
-    static var ebo:EBO;
-    static var vbo:VBO;
-    static var inputLayout:ShaderInputLayout;
-    static var texture:Texture2D;
-    static var world:Mat4;
-    static var view:Mat4;
-    static var projection:Mat4;
-    
-
+    static var initScene:InitScene;
     static function main() {
         fps = 60;
 
-        final iSc = new InitScene();
-        Application.initMyztic(iSc);
-        myzWin = Application.focusedWindow();
-        window = myzWin.backend.handle;
-
-        final win2 = MyzWin.create({name: "Window Test 1", init_scene: iSc, flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
-        final win3 = MyzWin.create({name: "Window Test 2", init_scene: iSc, init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win2.backend.handle, myzWin.backend.glContext));
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win3.backend.handle, myzWin.backend.glContext));
-
-        trace(DisplayHandler.monitors);
-        trace(Application.windows);
-
-        inline function checkCurrentWindow() {
-            var cur = SDL.GL_GetCurrentWindow();
-            trace("MyzWin currently is: " + Application.windows[SDL.getWindowID(cur)]);
-        }
-        checkCurrentWindow();
-        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(myzWin.backend.handle, myzWin.backend.glContext));
-        checkCurrentWindow();
-
-        ///*
-        
-        var compiled = SDL.VERSION();
-        var linked = SDL.getVersion();
-        trace("Versions:");
-        trace('    - We compiled against SDL version ${compiled.major}.${compiled.minor}.${compiled.patch} ...');
-        trace('    - And linked against SDL version ${linked.major}.${linked.minor}.${linked.patch}');
-
-        final maxVtxAttribs:cpp.Int32 = 0;
-        GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
-        trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
-        myztic.helpers.ErrorHandler.checkGLError();
-
-        world = new Mat4();
-        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
-        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
-
-        view = new Mat4();
-        view = GLM.translate(view, new Vec3(0, 0, -10));
-
-        projection = new Mat4();
-        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
-
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
-        vertices.fillFrom(0, 
-            [
-                //vtx is position, color, texcoord
-                0.5, 0.5, 0.0, 
-                1.0, 0.0, 0.0,
-                1.0, 0.0,
-
-                0.5, -0.5, 0.0,
-                0.0, 1.0, 0.0,
-                1.0, 1.0, 
-
-                -0.5, -0.5, 0.0,
-                0.0, 0.0, 1.0,
-                0.0, 1.0,
-
-                -0.5, 0.5, 0.0,
-                1.0, 0.0, 0.0,
-                0.0, 0.0
-            ]
-        );
-        
-        vertices.data_index = 0;
-        
-        var indices:StarArray<cpp.UInt32> = new StarArray<cpp.UInt32>(6);
-        indices.fillFrom(0, [0, 1, 3, 1, 2, 3]);
-        indices.data_index = 0;
-
-        //vao = VAO.make();
-        ebo = EBO.make();
-        vbo = VBO.make();
-
-        //vao.bindVertexArray();
-
-        vbo.bindVertexBuffer();
-        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
-
-        texture = Texture2D.fromFile("Yanni.png");
-
-        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR, ShaderInputLayout.TEXCOORD]));
-        inputLayout.enableAllAttribs();
-
-        ebo.bind();
-        ebo.changeElementBufferData(indices);
-
-        VBO.unbindBuffer();
-
-        var vertexShader:Shader = new Shader(GL.GL_VERTEX_SHADER, "VS.glsl");
-        var fragShader:Shader = new Shader(GL.GL_FRAGMENT_SHADER, "FS.glsl");
-
-        shaderProgram = new ShaderProgram();
-        shaderProgram.attachShader(vertexShader);
-        shaderProgram.attachShader(fragShader);
-
-        shaderProgram.link();
-
-        shaderProgram.useProgram();
-
-        shaderProgram.getUniformLocation("world");
-        shaderProgram.getUniformLocation("camView");
-        shaderProgram.getUniformLocation("projection");
-
-        vertexShader.deleteShader();
-        fragShader.deleteShader();
-        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
+        initScene = new InitScene();
+        Application.initMyztic(initScene);
 
         SDL.stopTextInput();
 
@@ -198,22 +77,7 @@ class Main {
         
         startAppLoop();
 
-        //vao.deleteArrayObject();
-        VBO.unbindBuffer();
-        VAO.unbindGLVertexArray();
-        EBO.unbindBuffer();
-        Texture2D.unbindTexture();
-        GL.glUseProgram(0);
-        inputLayout.disableAllAttribs();
-
-        vbo.deleteBuffer();
-        ebo.deleteBuffer();
-        texture.deleteTexture();
-        inputLayout.deleteInputLayout();
-        shaderProgram.deleteProgram();
-
         // App Exit
-        SDL.destroyWindow(window);
         cpp.vm.Gc.run(true);
         SDL.quit();
 
@@ -297,15 +161,15 @@ class Main {
 
                         if(!inputActive) SDL.startTextInput();
                         else SDL.stopTextInput();
-                        SDL.showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, 'INFO', 'TOGGLED TEXT INPUT: ${!inputActive}', window);
+                        SDL.showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, 'INFO', 'TOGGLED TEXT INPUT: ${!inputActive}', initScene.window);
                         textInput = '';
                     default: 
                         final newFps = Std.parseInt(textInput);
                         if(newFps != null && newFps > 0) {
-                            SDL.showSimpleMessageBox(SDL_MESSAGEBOX_WARNING, 'INFO', 'FPS set from $fps to $newFps', window);
+                            SDL.showSimpleMessageBox(SDL_MESSAGEBOX_WARNING, 'INFO', 'FPS set from $fps to $newFps', initScene.window);
                             fps = newFps;
                         }
-                        else SDL.showSimpleMessageBox(SDL_MESSAGEBOX_WARNING, 'WARNING', 'Could not set FPS to input data: $textInput', window);
+                        else SDL.showSimpleMessageBox(SDL_MESSAGEBOX_WARNING, 'WARNING', 'Could not set FPS to input data: $textInput', initScene.window);
                         
                         textInput = '';
                 }
@@ -340,7 +204,7 @@ class Main {
     #if !debug inline #end static function globalUpdate(dt:Float, lastAccumTime:Float):Void { 
         update(dt);
         // draw here!
-        render();
+        initScene.render();
 
         _curFPSCnt++;
         _fpsSecCnt += lastAccumTime;
@@ -357,7 +221,7 @@ class Main {
         MessageBox.showCallbacksMessageBox(
             'Quit requested',
             'Would you like to continue or quit?',
-            window,
+            initScene.window,
             SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
             [msgBoxContinue, msgBoxQuit]
         );
@@ -365,42 +229,15 @@ class Main {
         return mayQuit;
     }
 
-    static function render():Void {
-        //enable alpha shit?
-        GL.glEnable(GL.GL_BLEND);
-        GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
-
-        GL.glClearColor(0, 0, 0.2, 1);
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT);
-
-        shaderProgram.useProgram();
-
-        //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
-        shaderProgram.uniformMatrix4fv(world, shaderProgram.getUniformLocation("world"));
-        shaderProgram.uniformMatrix4fv(view, shaderProgram.getUniformLocation("camView"));
-        shaderProgram.uniformMatrix4fv(projection, shaderProgram.getUniformLocation("projection"));
-        //vao.bindVertexArray();
-        texture.bindTexture();
-        inputLayout.bindInputLayout();
-
-        GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
-
-        VAO.unbindGLVertexArray();
-
-        GL.glDisable(GL.GL_BLEND);
-
-        SDL.GL_SwapWindow(SDL.GL_GetCurrentWindow());
-    }
-
-    static var red = 0.1;
-    static var blue = 0.1;
+    // static var red = 0.1;
+    // static var blue = 0.1;
     /**
      * Update Loop
      * @param dt Time elapsed since last frame in MS
      */
     static function update(dt:Float) {
-        red = Math.random();
-        blue = Math.random();
+        // red = Math.random();
+        // blue = Math.random();
 
         // SDL.setHint(SDL_HINT_RENDER_VSYNC, 'true');
     }
