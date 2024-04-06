@@ -6,6 +6,8 @@ class Scene {
     public function new() {}
     /**
      * Called when this Scene is loaded to a Window.
+     * 
+     * Do not manually call this function.
      * @param callerWindow The Window this Scene was loaded to.
      */
     public function load(callerWindow:Window):Void {}
@@ -18,6 +20,8 @@ class Scene {
 
     /**
      * Called when this Scene is unloaded from a Window.
+     * 
+     * Do not manually call this function.
      * @param callerWindow The Window that this Scene was unloaded from. 
      */
     public function unload(callerWindow:Window):Void {}

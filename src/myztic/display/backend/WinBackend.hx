@@ -7,6 +7,7 @@ import myztic.display.Window;
  * 
  * Used to keep public low-level access without forcing it into the autocompletion.
  */
+ @:headerInclude('iostream')
 class WinBackend {
     /**
      * SDL Window ID.
@@ -28,5 +29,9 @@ class WinBackend {
 
     public function new(parent:Window) {
         this.parent = parent;
+    }
+
+    public static function logContextID(c:GLContext) {
+        untyped __cpp__('std::cout << "WinBackend.hx Context Log: " << {0} << "\\n"', c);
     }
 }

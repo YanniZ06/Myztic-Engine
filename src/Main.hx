@@ -82,7 +82,6 @@ class Main {
     static function main() {
         fps = 60;
 
-        // ! MOST RECENTLY CREATED WINDOW IS CURRENT GL WINDOW???? MAYBE THATS THE KICKER??? it was :(
         final iSc = new InitScene();
         Application.initMyztic(iSc);
         myzWin = Application.focusedWindow();
