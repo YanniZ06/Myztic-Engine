@@ -1,6 +1,5 @@
 package;
 
-import InitScene;
 import haxe.Template;
 import haxe.ds.Vector;
 import haxe.io.BytesOutput;
@@ -26,6 +25,9 @@ import opengl.OpenGL.GLfloat;
 import opengl.OpenGL.GLuintPointer;
 import opengl.OpenGL.GLintPointer;
 import glad.Glad;
+import glm.GLM;
+import glm.Mat4;
+import glm.Vec3;
 
 import myztic.graphics.backend.VBO;
 import myztic.graphics.backend.VAO;
@@ -38,8 +40,9 @@ import myztic.Application;
 import myztic.helpers.ErrorHandler.checkGLError;
 import myztic.display.DisplayHandler;
 import myztic.helpers.ErrorHandler;
-
 import myztic.display.Window as MyzWin;
+import myztic.util.Math.radians;
+import InitScene;
 
 import cpp.Float32;
 
@@ -71,12 +74,123 @@ class Main {
     static var vbo:VBO;
     static var inputLayout:ShaderInputLayout;
     static var texture:Texture2D;
+    static var world:Mat4;
+    static var view:Mat4;
+    static var projection:Mat4;
+    
 
     static function main() {
         fps = 60;
 
         final iSc = new InitScene();
         Application.initMyztic(iSc);
+        myzWin = Application.focusedWindow();
+        window = myzWin.backend.handle;
+
+        final win2 = MyzWin.create({name: "Window Test 1", init_scene: iSc, flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        final win3 = MyzWin.create({name: "Window Test 2", init_scene: iSc, init_pos: [25, 25], flags: SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE});
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win2.backend.handle, myzWin.backend.glContext));
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(win3.backend.handle, myzWin.backend.glContext));
+
+        trace(DisplayHandler.monitors);
+        trace(Application.windows);
+
+        inline function checkCurrentWindow() {
+            var cur = SDL.GL_GetCurrentWindow();
+            trace("MyzWin currently is: " + Application.windows[SDL.getWindowID(cur)]);
+        }
+        checkCurrentWindow();
+        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(myzWin.backend.handle, myzWin.backend.glContext));
+        checkCurrentWindow();
+
+        ///*
+        
+        var compiled = SDL.VERSION();
+        var linked = SDL.getVersion();
+        trace("Versions:");
+        trace('    - We compiled against SDL version ${compiled.major}.${compiled.minor}.${compiled.patch} ...');
+        trace('    - And linked against SDL version ${linked.major}.${linked.minor}.${linked.patch}');
+
+        final maxVtxAttribs:cpp.Int32 = 0;
+        GL.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, maxVtxAttribs.addressOf());
+        trace("Max available vertex attribs (vertex shader input): " + maxVtxAttribs);
+        myztic.helpers.ErrorHandler.checkGLError();
+
+        world = new Mat4();
+        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
+        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
+
+        view = new Mat4();
+        view = GLM.translate(view, new Vec3(0, 0, -10));
+
+        projection = new Mat4();
+        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
+
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
+        vertices.fillFrom(0, 
+            [
+                //vtx is position, color, texcoord
+                0.5, 0.5, 0.0, 
+                1.0, 0.0, 0.0,
+                1.0, 0.0,
+
+                0.5, -0.5, 0.0,
+                0.0, 1.0, 0.0,
+                1.0, 1.0, 
+
+                -0.5, -0.5, 0.0,
+                0.0, 0.0, 1.0,
+                0.0, 1.0,
+
+                -0.5, 0.5, 0.0,
+                1.0, 0.0, 0.0,
+                0.0, 0.0
+            ]
+        );
+        
+        vertices.data_index = 0;
+        
+        var indices:StarArray<cpp.UInt32> = new StarArray<cpp.UInt32>(6);
+        indices.fillFrom(0, [0, 1, 3, 1, 2, 3]);
+        indices.data_index = 0;
+
+        //vao = VAO.make();
+        ebo = EBO.make();
+        vbo = VBO.make();
+
+        //vao.bindVertexArray();
+
+        vbo.bindVertexBuffer();
+        vbo.changeVertexBufferData(vertices, GL.GL_STATIC_DRAW); // todo: vertices StarArray
+
+        texture = Texture2D.fromFile("Yanni.png");
+
+        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR, ShaderInputLayout.TEXCOORD]));
+        inputLayout.enableAllAttribs();
+
+        ebo.bind();
+        ebo.changeElementBufferData(indices);
+
+        VBO.unbindBuffer();
+
+        var vertexShader:Shader = new Shader(GL.GL_VERTEX_SHADER, "VS.glsl");
+        var fragShader:Shader = new Shader(GL.GL_FRAGMENT_SHADER, "FS.glsl");
+
+        shaderProgram = new ShaderProgram();
+        shaderProgram.attachShader(vertexShader);
+        shaderProgram.attachShader(fragShader);
+
+        shaderProgram.link();
+
+        shaderProgram.useProgram();
+
+        shaderProgram.getUniformLocation("world");
+        shaderProgram.getUniformLocation("camView");
+        shaderProgram.getUniformLocation("projection");
+
+        vertexShader.deleteShader();
+        fragShader.deleteShader();
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 
         SDL.stopTextInput();
 
@@ -252,12 +366,19 @@ class Main {
     }
 
     static function render():Void {
+        //enable alpha shit?
+        GL.glEnable(GL.GL_BLEND);
+        GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+
         GL.glClearColor(0, 0, 0.2, 1);
         GL.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         shaderProgram.useProgram();
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
+        shaderProgram.uniformMatrix4fv(world, shaderProgram.getUniformLocation("world"));
+        shaderProgram.uniformMatrix4fv(view, shaderProgram.getUniformLocation("camView"));
+        shaderProgram.uniformMatrix4fv(projection, shaderProgram.getUniformLocation("projection"));
         //vao.bindVertexArray();
         texture.bindTexture();
         inputLayout.bindInputLayout();
@@ -265,6 +386,8 @@ class Main {
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
 
         VAO.unbindGLVertexArray();
+
+        GL.glDisable(GL.GL_BLEND);
 
         SDL.GL_SwapWindow(SDL.GL_GetCurrentWindow());
     }

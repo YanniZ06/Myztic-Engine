@@ -5,10 +5,14 @@ layout (location = 2) in vec2 aTexCoords;
 
 out vec3 vertCol;
 out vec2 texCoords;
+
+uniform mat4 world;
+uniform mat4 camView;
+uniform mat4 projection;
         
 void main()
 {
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    gl_Position = camView * world * projection *  vec4(aPos, 1.0);
     vertCol = aCol;
     texCoords = aTexCoords;
 }
