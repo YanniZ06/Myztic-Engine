@@ -3,6 +3,7 @@ package myztic.graphics;
 import opengl.OpenGL;
 import myztic.display.Window;
 import myztic.graphics.shapes.Triangle;
+import myztic.graphics.Drawable;
 
 enum RenderTask {
     RenderTri(tri:Triangle);
@@ -50,7 +51,8 @@ class Renderer {
     // todo: Figure out types, maybe make another enum
     // todo: rename, also give purpose
     // todo: this should contain everything the renderer needs to "bind" or "enable" to render what has been tasked to render and prepared by "execute"!!
-    public var toBind:Array<Dynamic> = []; 
+    //! maybe this could be toDraw:Array<Drawable> ?
+    public var toDraw:Array<Drawable> = []; 
 
     /**
      * The way the renderer should display the handed render-information.

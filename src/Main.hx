@@ -35,6 +35,7 @@ import myztic.graphics.backend.EBO;
 import myztic.graphics.backend.Shader;
 import myztic.graphics.backend.ShaderInputLayout;
 import myztic.graphics.backend.Texture2D;
+import myztic.graphics.Camera;
 import myztic.helpers.StarArray;
 import myztic.Application;
 import myztic.helpers.ErrorHandler.checkGLError;
@@ -52,6 +53,8 @@ using cpp.Native;
 // future: use sprites ionstead of backend graphics
 class Main {
     public static var fps(default, set):Int = 30; // Set in Main!!
+    public static var camera:Camera;
+    
     static var usedFps:Int = 0;
     static var _curFPSCnt:Int = 0;
     
@@ -65,6 +68,7 @@ class Main {
     static var shouldClose:Bool = false;
 
     static var initScene:InitScene;
+
     static function main() {
         fps = 60;
 
@@ -74,6 +78,8 @@ class Main {
         SDL.stopTextInput();
 
         cpp.vm.Gc.run(true);
+        
+        camera = new Camera();
         
         startAppLoop();
 
@@ -122,6 +128,8 @@ class Main {
         }
     }
 
+    private static inline var MOVE_SPEED:cpp.Float32 = 2.5;
+
     #if !debug inline #end static function handleSDLEvents():Void {
         var continueEventSearch = SDL.hasAnEvent();
         while(continueEventSearch) {
@@ -138,7 +146,7 @@ class Main {
                     case SDL_WINDOWEVENT_RESIZED:
                         ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(Application.windows[e.window.windowID].backend.handle, Application.windows[1].backend.glContext)); 
                         // switched to window thats resized
-                        initScene.projection = glm.GLM.perspective(90, e.window.data1/e.window.data2, 0.1, 100.0);
+                        initScene.projection = glm.GLM.perspective(45, e.window.data1/e.window.data2, 0.1, 100.0);
                         GL.glViewport(0, 0, e.window.data1, e.window.data2);
                     
                     case SDL_WINDOWEVENT_CLOSE: 
@@ -178,10 +186,25 @@ class Main {
                 switch(e.key.keysym.sym) {
                     case Keycodes.backspace:         
                         reqExit();
-                    case Keycodes.key_s:
+                    /*case Keycodes.key_s:
                         final randNum = Std.random(3) + 1;
                         final randWin = Application.windows[randNum];
-                        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(randWin.backend.handle, Application.windows[1].backend.glContext));
+                        ErrorHandler.checkSDLError(SDL.GL_MakeCurrent(randWin.backend.handle, Application.windows[1].backend.glContext));*/
+                    case Keycodes.insert:
+                        //freecam mode
+                        camera.free = true;
+                    case Keycodes.key_w:
+                        if (camera.free)
+                            camera.camPos.minusEqual(camera.camFront.multiplyScalar(MOVE_SPEED * frameDurMS));
+                    case Keycodes.key_s:
+                        if (camera.free)
+                            camera.camPos.plusEqual(camera.camFront.multiplyScalar(MOVE_SPEED * frameDurMS));
+                    case Keycodes.key_a:
+                        if (camera.free)
+                            camera.camPos.minusEqual(GLM.normalize(GLM.cross(camera.camFront, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
+                    case Keycodes.key_d:
+                        if (camera.free)
+                            camera.camPos.plusEqual(GLM.normalize(GLM.cross(camera.camFront, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
                     default:
                 }
 

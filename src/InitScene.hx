@@ -42,6 +42,7 @@ import myztic.helpers.ErrorHandler.checkGLError;
 import myztic.display.DisplayHandler;
 import myztic.helpers.ErrorHandler;
 import myztic.util.Math.radians;
+import myztic.graphics.Camera;
 
 import cpp.Float32;
 
@@ -51,6 +52,7 @@ using cpp.Native;
 class DummyScene extends Scene {
 
 }
+@:headerInclude('gtc/matrix_transform.hpp')
 class InitScene extends Scene {
     public var window:SDLWin;
     public var myzWin:Window;
@@ -64,21 +66,7 @@ class InitScene extends Scene {
     public var texture:Texture2D;
 
     public var world:Mat4;
-    public var view:Mat4;
     public var projection:Mat4;
-
-    public var cameraPosition(default, set):Vec3 = new Vec3(0, 0, -10);
-
-    private inline function viewMatrixUpdate(vec3:Vec3):Void {
-        myztic.util.Math.makeMatrixIdentity(view);
-        view = GLM.translate(view, vec3);
-    }
-
-    public function set_cameraPosition(n:Vec3):Vec3 {
-        viewMatrixUpdate(n);
-
-        return cameraPosition = n;
-    }
 
     override function load(win:Window) {
         super.load(win);
@@ -99,10 +87,6 @@ class InitScene extends Scene {
             trace("MyzWin currently is: " + Application.windows[SDL.getWindowID(cur)]);
         }
         checkCurrentWindow();
-
-        cameraPosition.xSet = () -> {viewMatrixUpdate(cameraPosition);};
-        cameraPosition.ySet = () -> {viewMatrixUpdate(cameraPosition);};
-        cameraPosition.zSet = () -> {viewMatrixUpdate(cameraPosition);};
         
         var compiled = SDL.VERSION();
         var linked = SDL.getVersion();
@@ -117,14 +101,14 @@ class InitScene extends Scene {
 
         //setting up camera, model position and the projection
         world = new Mat4();
-        world = GLM.rotate(world, radians(55), new glm.Vec3(1, 0, 0));
+        //world = GLM.rotate(world, radians(25), new glm.Vec3(1, 0, 0));
         world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
 
-        view = new Mat4();
-        view = GLM.translate(view, cameraPosition);
+        final f:Float32 = Std.parseFloat('${myzWin.width}');
+        final e:Float32 = Std.parseFloat('${myzWin.height}');
 
         //projection should be remade everytime window resolution changes
-        projection = GLM.perspective(90, myzWin.width / myzWin.height, 0.1, 100.0);
+        projection = GLM.perspective(45, myzWin.width / myzWin.height, 0.1, 100.0);
 
         setupGraphics();
     }
@@ -158,12 +142,12 @@ class InitScene extends Scene {
 
         //shaderProgram.modifyUniformVector3([1.0, (Math.sin(Timer.stamp()) / 2) + 0.5, 0.3], shaderProgram.uniforms.get("vertCol"));
         shaderProgram.uniformMatrix4fv(world, shaderProgram.getUniformLocation("world"));
-        shaderProgram.uniformMatrix4fv(view, shaderProgram.getUniformLocation("camView"));
+        shaderProgram.uniformMatrix4fv(Main.camera.viewMatrix, shaderProgram.getUniformLocation("camView"));
         shaderProgram.uniformMatrix4fv(projection, shaderProgram.getUniformLocation("projection"));
         texture.bind();
         inputLayout.bindInputLayout();
 
-        cameraPosition.z -= 0.01;
+        //Main.camera.camPos.z -= 0.01;
 
         GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
 
@@ -175,24 +159,20 @@ class InitScene extends Scene {
     }
 
     inline function setupGraphics() {
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(36);
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(24);
         vertices.fillFrom(0, 
             [
                 //vtx is position, color, texcoord
                 0.5, 0.5, 0.0, 
-                1.0, 0.0, 0.0,
                 1.0, 0.0,
 
                 0.5, -0.5, 0.0,
-                0.0, 1.0, 0.0,
                 1.0, 1.0, 
 
                 -0.5, -0.5, 0.0,
-                0.0, 0.0, 1.0,
                 0.0, 1.0,
 
                 -0.5, 0.5, 0.0,
-                1.0, 0.0, 0.0,
                 0.0, 0.0
             ]
         );
@@ -208,9 +188,9 @@ class InitScene extends Scene {
 
         vbo.bind();
         vbo.fill(vertices, GL.GL_STATIC_DRAW);
-        texture = Texture2D.fromFile("Yanni.png");
+        texture = Texture2D.fromFile("Glint.png");
 
-        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.COLOR, ShaderInputLayout.TEXCOORD]));
+        inputLayout = ShaderInputLayout.createInputLayout(ShaderInputLayout.createLayoutDescription([ShaderInputLayout.POSITION, ShaderInputLayout.TEXCOORD]));
         inputLayout.enableAllAttribs();
 
         ebo.bind();
