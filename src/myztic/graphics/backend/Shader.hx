@@ -85,7 +85,7 @@ class ShaderProgram implements Bindable<Shader, Int, Int>
         OpenGL.glGetIntegerv(OpenGL.GL_CURRENT_PROGRAM, currentBoundProgram.addressOf());
         checkGLError();
         if (currentBoundProgram != handle) trace("[[WARNING]]: CURRENT BOUND PROGRAM IS NOT THE SAME AS THE CLASS YOURE CALLING IT FROM, CURRENTLY BOUND: " + currentBoundProgram + " CLASS HANDLE: " + handle);
-        OpenGL.glUniformMatrix4fv(location, 1, true, input.valPtr());
+        OpenGL.glUniformMatrix4fv(location, 1, false, input.valPtr());
         checkGLError();
     }
 }

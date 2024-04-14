@@ -195,16 +195,16 @@ class Main {
                         camera.free = true;
                     case Keycodes.key_w:
                         if (camera.free)
-                            camera.camPos.minusEqual(camera.camFront.multiplyScalar(MOVE_SPEED * frameDurMS));
+                            camera.camPos.plusEqual(camera.camLook.multiplyScalar(MOVE_SPEED * frameDurMS));
                     case Keycodes.key_s:
                         if (camera.free)
-                            camera.camPos.plusEqual(camera.camFront.multiplyScalar(MOVE_SPEED * frameDurMS));
+                            camera.camPos.minusEqual(camera.camLook.multiplyScalar(MOVE_SPEED * frameDurMS));
                     case Keycodes.key_a:
                         if (camera.free)
-                            camera.camPos.minusEqual(GLM.normalize(GLM.cross(camera.camFront, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
+                            camera.camPos.minusEqual(GLM.normalize(GLM.cross(camera.camLook, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
                     case Keycodes.key_d:
                         if (camera.free)
-                            camera.camPos.plusEqual(GLM.normalize(GLM.cross(camera.camFront, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
+                            camera.camPos.plusEqual(GLM.normalize(GLM.cross(camera.camLook, Camera.UP)).multiplyScalar(MOVE_SPEED * frameDurMS));
                     default:
                 }
 

@@ -10,6 +10,6 @@ uniform mat4 projection;
         
 void main()
 {
-    gl_Position = camView * world * projection *  vec4(aPos, 1.0);
+    gl_Position = projection * camView * world *  vec4(aPos, 1.0);
     texCoords = aTexCoords;
 }

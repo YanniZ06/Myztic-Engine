@@ -101,11 +101,8 @@ class InitScene extends Scene {
 
         //setting up camera, model position and the projection
         world = new Mat4();
-        //world = GLM.rotate(world, radians(25), new glm.Vec3(1, 0, 0));
-        world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
-
-        final f:Float32 = Std.parseFloat('${myzWin.width}');
-        final e:Float32 = Std.parseFloat('${myzWin.height}');
+        world = GLM.rotate(world, radians(-55), new glm.Vec3(1, 0.7, 0));
+        //world = GLM.scale(world, new glm.Vec3(0.5, 0.5, 0.5));
 
         //projection should be remade everytime window resolution changes
         projection = GLM.perspective(45, myzWin.width / myzWin.height, 0.1, 100.0);
@@ -132,11 +129,12 @@ class InitScene extends Scene {
 
     public function render():Void {
         //enable alpha shit?
+        GL.glEnable(GL.GL_DEPTH_TEST);
         GL.glEnable(GL.GL_BLEND);
         GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
 
         GL.glClearColor(0, 0, 0.2, 1);
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT);
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.bind();
 
@@ -149,33 +147,63 @@ class InitScene extends Scene {
 
         //Main.camera.camPos.z -= 0.01;
 
-        GL.glDrawElements(GL.GL_TRIANGLES, 6, GL.GL_UNSIGNED_INT, 0);
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, 36);/*6, GL.GL_UNSIGNED_INT, 0);*/
 
         GL.glBindVertexArray(0);
 
         GL.glDisable(GL.GL_BLEND);
+        GL.glDisable(GL.GL_DEPTH_TEST);
 
         SDL.GL_SwapWindow(SDL.GL_GetCurrentWindow());
     }
 
     inline function setupGraphics() {
-        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(24);
-        vertices.fillFrom(0, 
-            [
-                //vtx is position, color, texcoord
-                0.5, 0.5, 0.0, 
-                1.0, 0.0,
+        final vert:Array<GLfloat> = [
+            -0.5, -0.5, -0.5,  0.0, 0.0,
+            0.5, -0.5, -0.5,  1.0, 0.0,
+            0.5,  0.5, -0.5,  1.0, 1.0,
+            0.5,  0.5, -0.5,  1.0, 1.0,
+            -0.5,  0.5, -0.5,  0.0, 1.0,
+            -0.5, -0.5, -0.5,  0.0, 0.0,
 
-                0.5, -0.5, 0.0,
-                1.0, 1.0, 
+            -0.5, -0.5,  0.5,  0.0, 0.0,
+            0.5, -0.5,  0.5,  1.0, 0.0,
+            0.5,  0.5,  0.5,  1.0, 1.0,
+            0.5,  0.5,  0.5,  1.0, 1.0,
+            -0.5,  0.5,  0.5,  0.0, 1.0,
+            -0.5, -0.5,  0.5,  0.0, 0.0,
 
-                -0.5, -0.5, 0.0,
-                0.0, 1.0,
+            -0.5,  0.5,  0.5,  1.0, 0.0,
+            -0.5,  0.5, -0.5,  1.0, 1.0,
+            -0.5, -0.5, -0.5,  0.0, 1.0,
+            -0.5, -0.5, -0.5,  0.0, 1.0,
+            -0.5, -0.5,  0.5,  0.0, 0.0,
+            -0.5,  0.5,  0.5,  1.0, 0.0,
 
-                -0.5, 0.5, 0.0,
-                0.0, 0.0
-            ]
-        );
+            0.5,  0.5,  0.5,  1.0, 0.0,
+            0.5,  0.5, -0.5,  1.0, 1.0,
+            0.5, -0.5, -0.5,  0.0, 1.0,
+            0.5, -0.5, -0.5,  0.0, 1.0,
+            0.5, -0.5,  0.5,  0.0, 0.0,
+            0.5,  0.5,  0.5,  1.0, 0.0,
+
+            -0.5, -0.5, -0.5,  0.0, 1.0,
+            0.5, -0.5, -0.5,  1.0, 1.0,
+            0.5, -0.5,  0.5,  1.0, 0.0,
+            0.5, -0.5,  0.5,  1.0, 0.0,
+            -0.5, -0.5,  0.5,  0.0, 0.0,
+            -0.5, -0.5, -0.5,  0.0, 1.0,
+
+            -0.5,  0.5, -0.5,  0.0, 1.0,
+            0.5,  0.5, -0.5,  1.0, 1.0,
+            0.5,  0.5,  0.5,  1.0, 0.0,
+            0.5,  0.5,  0.5,  1.0, 0.0,
+            -0.5,  0.5,  0.5,  0.0, 0.0,
+            -0.5,  0.5, -0.5,  0.0, 1.0
+        ];
+
+        var vertices:StarArray<GLfloat> = new StarArray<GLfloat>(vert.length);
+        vertices.fillFrom(0, vert);
         
         vertices.data_index = 0;
         
